@@ -2,9 +2,13 @@
 #include "Fleury.h"
 using namespace std;
 
-void Graph::printEulerTour()
-{
-    // Find a vertex with odd degree
+void Graph::printEulerTour(const vector<pair<int, int>>& additionalEdges) {
+    // Додаємо додаткові ребра для перетворення графу в Ейлерів
+    for (auto edge : additionalEdges) {
+        addEdge(edge.first, edge.second);
+    }
+
+    // Знаходимо вершину з непарною степенем, якщо така є
     int u = 0;
     for (int i = 0; i < V; i++)
         if (adj[i].size() & 1) {
@@ -12,23 +16,17 @@ void Graph::printEulerTour()
             break;
         }
 
-    // Print tour starting from oddv
+    // Вивід маршруту, починаючи з вершини з непарною степенем
     printEulerUtil(u);
     cout << endl;
 }
 
-// Print Euler tour starting from vertex u
-void Graph::printEulerUtil(int u)
-{
-    // Recur for all the vertices adjacent to this vertex
+void Graph::printEulerUtil(int u) {
     list<int>::iterator i;
     for (i = adj[u].begin(); i != adj[u].end(); ++i) {
         int v = *i;
-
-        // If edge u-v is not removed and it's a valid
-        // next edge
         if (v != -1 && isValidNextEdge(u, v)) {
-            cout << (u + 1) << "-" << (v + 1) << " "; // Output in 1-based format
+            cout << (u + 1) << "-" << (v + 1) << " ";
             rmvEdge(u, v);
             printEulerUtil(v);
         }

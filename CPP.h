@@ -11,7 +11,7 @@ vector<vector<int>> floydWarshalls(vector<vector<pair<int, int>>>& g, int n);
 
 class Solution {
 public:
-    int chinesePostmanProblem(vector<vector<int>>& e, int n);
+    pair<int, vector<pair<int, int>>>  chinesePostmanProblem(vector<vector<int>>& e, int n);
 };
 
 #endif // CPP_H

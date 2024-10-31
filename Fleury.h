@@ -5,6 +5,7 @@
 #include <list>
 #include <string.h>
 #include <vector>
+#include <sstream>
 using namespace std;
 
 // A class that represents an undirected graph
@@ -29,8 +30,9 @@ public:
     void rmvEdge(int u, int v);
 
     // Methods to print Eulerian tour
-    void printEulerTour();
+    void printEulerTour(const vector<pair<int, int>>& additionalEdges);
     void printEulerUtil(int s);
+    string getEulerPath(); // New method to get the Euler path as a string
 
     int getTotalWeight(const vector<vector<int>>& edges);
 
@@ -41,4 +43,7 @@ public:
     // Utility function to check if edge u-v is a valid next
     // edge in Eulerian trail or circuit
     bool isValidNextEdge(int u, int v);
+
+private:
+    vector<int> eulerPath; // To store the sequence of vertices visited
 };

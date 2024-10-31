@@ -15,6 +15,11 @@
 
 using namespace std;
 
+// Функція для перетворення числових індексів у символи
+char indexToChar(int index) {
+    return 'A' + index; // Перетворює 0 в 'A', 1 в 'B', і т.д.
+}
+
 // Функція для зчитування графа від користувача
 vector<vector<int>> inputGraph(int& n) {
     cout << "Введіть кількість вершин: ";
@@ -39,7 +44,8 @@ void printGraph(const vector<vector<int>>& e, int n) {
     cout << "Кількість вершин: " << n << endl;
     cout << "Ребра:\n";
     for (const auto& edge : e) {
-        cout << "Вершина " << edge[0] << " - Вершина " << edge[1] << ": вага " << edge[2] << endl;
+        cout << "Вершина " << indexToChar(edge[0] - 1) << " - Вершина "
+            << indexToChar(edge[1] - 1) << ": вага " << edge[2] << endl;
     }
 }
 
@@ -47,13 +53,13 @@ void printGraph(const vector<vector<int>>& e, int n) {
 vector<vector<int>> getTemplateData1(int& n) {
     n = 5; // Кількість точок
     return {
-        {1, 2, 100}, // ab - 100
-        {1, 3, 150}, // ac - 150
-        {2, 3, 120}, // cb - 120
-        {2, 4, 200}, // bd - 200
-        {3, 4, 180}, // cd - 180
-        {3, 5, 160}, // ce - 160
-        {4, 5, 140}  // ed - 140
+        {1, 2, 100}, // A - B: 100
+        {1, 3, 150}, // A - C: 150
+        {2, 3, 120}, // B - C: 120
+        {2, 4, 200}, // B - D: 200
+        {3, 4, 180}, // C - D: 180
+        {3, 5, 160}, // C - E: 160
+        {4, 5, 140}  // D - E: 140
     };
 }
 
@@ -61,23 +67,23 @@ vector<vector<int>> getTemplateData1(int& n) {
 vector<vector<int>> getTemplateData2(int& n) {
     n = 13; // Кількість точок
     return {
-        {1, 2, 1300}, // ab - 1300 m
-        {1, 10, 550}, // aj - 550
-        {2, 3, 350},  // bc - 350
-        {3, 4, 150},  // cd - 150
-        {3, 11, 500}, // ck - 500
-        {4, 5, 500},  // de - 500
-        {4, 12, 350}, // dl - 350
-        {5, 6, 350},  // ef - 350
-        {6, 7, 350},  // fg - 350
-        {6, 13, 240}, // fm - 240
-        {7, 8, 260},  // gh - 260
-        {8, 9, 490},  // hi - 490
-        {8, 13, 350}, // hm - 350
-        {9, 10, 260}, // ij - 260
-        {9, 11, 350}, // ik - 350
-        {11, 12, 150},// kl - 150
-        {12, 13, 210} // lm - 210
+        {1, 2, 1300}, // A - B: 1300
+        {1, 10, 550}, // A - J: 550
+        {2, 3, 350},  // B - C: 350
+        {3, 4, 150},  // C - D: 150
+        {3, 11, 500}, // C - K: 500
+        {4, 5, 500},  // D - E: 500
+        {4, 12, 350}, // D - L: 350
+        {5, 6, 350},  // E - F: 350
+        {6, 7, 350},  // F - G: 350
+        {6, 13, 240}, // F - M: 240
+        {7, 8, 260},  // G - H: 260
+        {8, 9, 490},  // H - I: 490
+        {8, 13, 350}, // H - M: 350
+        {9, 10, 260}, // I - J: 260
+        {9, 11, 350}, // I - K: 350
+        {11, 12, 150},// K - L: 150
+        {12, 13, 210} // L - M: 210
     };
 }
 
@@ -121,31 +127,26 @@ int main() {
             continue;
         }
 
-    // Створюємо граф з введених даних
-    Graph g(n);
-    for (const auto& edge : e) {
-        g.addEdge(edge[0] - 1, edge[1] - 1); // Зменшуємо на 1 для 0-індексації
-    }
+        // Виклик chinesePostmanProblem для отримання ваги і додаткових ребер
+        auto result = sol.chinesePostmanProblem(e, n);
+        int minDistance = result.first;
+        vector<pair<int, int>> additionalEdges = result.second;
 
-    // Calculate total weight of edges
-    int totalWeight = g.getTotalWeight(e);
-    cout << "Загальна вага ребер: " << totalWeight << endl;
+        if (minDistance == -1) {
+            cout << "Неможливо побудувати Ейлерів цикл у графі.\n";
+        }
+        else {
+            cout << "Найкоротший шлях: " << minDistance << endl;
+            Graph g(n);
+            for (const auto& edge : e) {
+                g.addEdge(edge[0] - 1, edge[1] - 1);
+            }
+            cout << "Ейлеровий маршрут:\n";
+            g.printEulerTour(additionalEdges); // Додаємо додаткові ребра
+        }
 
-    // Get the shortest path distance
-    int minDistance = sol.chinesePostmanProblem(e, n);
-
-    if (minDistance == -1) {
-        cout << "Неможливо побудувати Ейлерів цикл у графі.\n";
-    }
-    else {
-        cout << "Найкоротший шлях: " << minDistance << endl;
-
-        cout << "Ейлеровий маршрут:\n";
-        g.printEulerTour();
-    }
-
-    cout << "Повторити програму (0 - так, 1 - ні)?\n";
-    cin >> repeat;
+        cout << "Повторити програму (0 - так, 1 - ні)?\n";
+        cin >> repeat;
 
     } while (repeat == 0);
 
