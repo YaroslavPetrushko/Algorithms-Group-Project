@@ -35,6 +35,15 @@ void Graph::printEulerUtil(int u)
     }
 }
 
+// Метод для обрахування загальної ваги ребер
+int Graph::getTotalWeight(const vector<vector<int>>& edges) {
+    int totalWeight = 0;
+    for (const auto& edge : edges) {
+        totalWeight += edge[2]; // The weight is the third element
+    }
+    return totalWeight;
+}
+
 // The function to check if edge u-v can be considered as next edge in Euler Tour
 bool Graph::isValidNextEdge(int u, int v)
 {

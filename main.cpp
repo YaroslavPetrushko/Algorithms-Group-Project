@@ -1,9 +1,9 @@
-//Chinese Postman Problem
-//Team 13
+// Chinese Postman Problem
+// Team 13
 // КН-37-4
 // Algorhythms and Data Structures
-// Deadline: 30 November
-// Used time: 5 hour
+// Deadline: 28 November
+// Used time: 6 hour
 
 #include <iostream>
 #include <vector>
@@ -59,25 +59,25 @@ vector<vector<int>> getTemplateData1(int& n) {
 
 // Функція для використання шаблонних даних 2
 vector<vector<int>> getTemplateData2(int& n) {
-    n = 5; // Кількість точок
+    n = 13; // Кількість точок
     return {
         {1, 2, 1300}, // ab - 1300 m
         {1, 10, 550}, // aj - 550
-        {2, 3, 350}, // bc - 350
-        {3, 4, 150}, // cd - 150
+        {2, 3, 350},  // bc - 350
+        {3, 4, 150},  // cd - 150
         {3, 11, 500}, // ck - 500
-        {4, 5, 500}, // de - 500
+        {4, 5, 500},  // de - 500
         {4, 12, 350}, // dl - 350
-        {5, 6, 350}, // ef - 350
+        {5, 6, 350},  // ef - 350
         {6, 7, 350},  // fg - 350
-        {6, 13, 240},  // fm - 240
+        {6, 13, 240}, // fm - 240
         {7, 8, 260},  // gh - 260
         {8, 9, 490},  // hi - 490
-        {8, 13, 350},  // hm - 350
-        {9, 10, 260},  // ij - 260
-        {9, 11, 350},  // ik - 350
-        {11, 12, 150},  // kl - 150
-        {12, 13, 210}  // lm - 210
+        {8, 13, 350}, // hm - 350
+        {9, 10, 260}, // ij - 260
+        {9, 11, 350}, // ik - 350
+        {11, 12, 150},// kl - 150
+        {12, 13, 210} // lm - 210
     };
 }
 
@@ -86,44 +86,53 @@ int main() {
     SetConsoleOutputCP(1251);
 
     Solution sol;
-    int n=0;
+    int n = 0;
     vector<vector<int>> e;
     bool repeat = 0;
     do {
-    // Запитуємо у користувача, як отримати дані
-    int choice, temp;
-    cout << "Використати шаблонні дані (1) чи ввести вручну (2)? Введіть 1 або 2: ";
-    cin >> choice;
+        // Запитуємо у користувача, як отримати дані
+        char choice, temp;
+        cout << "Використати шаблонні дані (1) чи ввести вручну (2)? Введіть 1 або 2: ";
+        cin >> choice;
 
-    if (choice == '1') {
-        cout << "\nВибрати шаблон: 1 - приклад, 2 - за реал. ситуацією.\n";
-        cin >> temp;
-        switch (temp) {
-        case 1:
-            e = getTemplateData1(n);
-        case 2:
-            e = getTemplateData2(n);
+        if (choice == '1') {
+            cout << "\nВибрати шаблон: 1 - приклад, 2 - за реал. ситуацією.\n";
+            cin >> temp;
+            switch (temp) {
+            case '1': // Порівнюємо з символом '1'
+                e = getTemplateData1(n);
+                break; // Додаємо break для виходу з switch
+            case '2': // Порівнюємо з символом '2'
+                e = getTemplateData2(n);
+                break; // Додаємо break для виходу з switch
+            default: // Обробляємо неправильний вибір
+                cout << "Невірний вибір шаблону. Повторіть будь-ласка.\n";
+                continue; // Повертаємося на початок циклу
+            }
+            cout << "Використано шаблонні дані:\n";
+            printGraph(e, n); // Виводимо граф
         }
-        cout << "Використано шаблонні дані:\n";
-        printGraph(e, n); // Виводимо граф
-    }
-    else if (choice == '2') {
-        e = inputGraph(n);
-    }
-    else {
-        cout << "Невірний вибір. Повторіть будь-ласка.\n";
-        repeat = 0;
-        continue;
-    }
-
-    // Отримуємо значення найкоротшого шляху
-    int minDistance = sol.chinesePostmanProblem(e, n);
+        else if (choice == '2') {
+            e = inputGraph(n);
+        }
+        else {
+            cout << "Невірний вибір. Повторіть будь-ласка.\n";
+            repeat = 0;
+            continue;
+        }
 
     // Створюємо граф з введених даних
     Graph g(n);
     for (const auto& edge : e) {
         g.addEdge(edge[0] - 1, edge[1] - 1); // Зменшуємо на 1 для 0-індексації
     }
+
+    // Calculate total weight of edges
+    int totalWeight = g.getTotalWeight(e);
+    cout << "Загальна вага ребер: " << totalWeight << endl;
+
+    // Get the shortest path distance
+    int minDistance = sol.chinesePostmanProblem(e, n);
 
     if (minDistance == -1) {
         cout << "Неможливо побудувати Ейлерів цикл у графі.\n";

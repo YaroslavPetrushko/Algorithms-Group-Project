@@ -32,6 +32,8 @@ public:
     void printEulerTour();
     void printEulerUtil(int s);
 
+    int getTotalWeight(const vector<vector<int>>& edges);
+
     // This function returns count of vertices reachable
     // from v. It does DFS
     int DFSCount(int v, bool visited[]);
