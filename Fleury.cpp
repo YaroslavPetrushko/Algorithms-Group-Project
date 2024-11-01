@@ -3,9 +3,9 @@
 using namespace std;
 
 void Graph::printEulerTour(const vector<pair<int, int>>& additionalEdges) {
-    // Додаємо додаткові ребра для перетворення графу в Ейлерів
-    for (auto edge : additionalEdges) {
-        addEdge(edge.first, edge.second);
+    // Додаємо додаткові ребра тільки якщо вони не існують
+    for (const auto& edge : additionalEdges) {
+            addEdge(edge.first, edge.second);
     }
 
     // Знаходимо вершину з непарною степенем, якщо така є

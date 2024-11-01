@@ -3,7 +3,7 @@
 // КН-37-4
 // Algorhythms and Data Structures
 // Deadline: 28 November
-// Used time: 6 hour
+// Used time: 10 hour
 
 #include <iostream>
 #include <vector>
@@ -37,26 +37,6 @@ vector<vector<int>> inputGraph(int& n) {
     }
     return e;
 }
-
-//// Функція для зчитування графа від користувача
-//vector<vector<int>> inputGraphWithPath(int& n) {
-//    cout << "Введіть кількість вершин: ";
-//    cin >> n;
-//    int edges;
-//    cout << "Введіть кількість ребер: ";
-//    cin >> edges;
-//
-//    vector<vector<int>> e;
-//    cout << "Введіть ребра у форматі 'початок кінець вага шлях' (1 2 10 0/1):\n";  //1 - перша точка, 2 - друга точка, 10 - довжина ребра, 0/1 - наявність або відсутність дублювання шляху між ними
-//
-//    //Оновити метод
-//    for (int i = 0; i < edges; ++i) {
-//        int u, v, w;
-//        cin >> u >> v >> w;
-//        e.push_back({ u, v, w });
-//    }
-//    return e;
-//}
 
 // Функція для виведення графа
 void printGraph(const vector<vector<int>>& e, int n) {
@@ -101,9 +81,12 @@ void extendGraph(vector<vector<int>>& e, vector<vector<int>>& previousPath, int&
     else {
         cout << "Доповнений найкоротший шлях: " << minDistance << endl;
         Graph g(n);
+
+        // Додаємо ребра для маршруту
         for (const auto& edge : e) {
-            g.addEdge(edge[0] - 1, edge[1] - 1);
+                g.addEdge(edge[0] - 1, edge[1] - 1);
         }
+
         cout << "Ейлеровий маршрут з доповненням:\n";
         g.printEulerTour(additionalEdges); // Виводимо оновлений маршрут з додатковими ребрами
     }

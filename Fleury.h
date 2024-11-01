@@ -45,5 +45,5 @@ public:
     bool isValidNextEdge(int u, int v);
 
 private:
-    vector<int> eulerPath; // To store the sequence of vertices visited
+    vector<pair<int, int>> e; // Вектор для зберігання ребер графа
 };
