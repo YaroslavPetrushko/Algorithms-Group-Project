@@ -32,8 +32,8 @@ public:
     // Methods to print Eulerian tour
     void printEulerTour(const vector<pair<int, int>>& additionalEdges);
     void printEulerUtil(int s);
-    string getEulerPath(); // New method to get the Euler path as a string
 
+    //Отримання загальної ваги ребер
     int getTotalWeight(const vector<vector<int>>& edges);
 
     // This function returns count of vertices reachable

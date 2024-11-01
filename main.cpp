@@ -38,14 +38,74 @@ vector<vector<int>> inputGraph(int& n) {
     return e;
 }
 
+//// Функція для зчитування графа від користувача
+//vector<vector<int>> inputGraphWithPath(int& n) {
+//    cout << "Введіть кількість вершин: ";
+//    cin >> n;
+//    int edges;
+//    cout << "Введіть кількість ребер: ";
+//    cin >> edges;
+//
+//    vector<vector<int>> e;
+//    cout << "Введіть ребра у форматі 'початок кінець вага шлях' (1 2 10 0/1):\n";  //1 - перша точка, 2 - друга точка, 10 - довжина ребра, 0/1 - наявність або відсутність дублювання шляху між ними
+//
+//    //Оновити метод
+//    for (int i = 0; i < edges; ++i) {
+//        int u, v, w;
+//        cin >> u >> v >> w;
+//        e.push_back({ u, v, w });
+//    }
+//    return e;
+//}
+
 // Функція для виведення графа
 void printGraph(const vector<vector<int>>& e, int n) {
-    cout << "Граф:\n";
+    cout << "Дані графу.\n";
     cout << "Кількість вершин: " << n << endl;
     cout << "Ребра:\n";
     for (const auto& edge : e) {
         cout << "Вершина " << indexToChar(edge[0] - 1) << " - Вершина "
             << indexToChar(edge[1] - 1) << ": вага " << edge[2] << endl;
+    }
+}
+
+// Функція для доповнення існуючого графа та обчислення доповнення до маршруту
+void extendGraph(vector<vector<int>>& e, vector<vector<int>>& previousPath, int& n) {
+    int newEdges, u, v, w;
+    cout << "Введіть кількість нових вершин (якщо немає - введіть 0): ";
+    int newNodes;
+    cin >> newNodes;
+
+    // Якщо додаються нові вершини, оновлюємо кількість вершин в графі
+    n += newNodes;
+
+    cout << "Введіть кількість нових ребер для доповнення графа: ";
+    cin >> newEdges;
+
+    cout << "Введіть нові ребра у форматі 'початок кінець вага':\n";
+    for (int i = 0; i < newEdges; ++i) {
+        cin >> u >> v >> w;
+        e.push_back({ u, v, w });
+    }
+
+    // Визначаємо, чи можливе доповнення існуючого шляху
+    Solution sol;
+    auto result = sol.chinesePostmanProblem(e, n);
+    int minDistance = result.first;
+    vector<pair<int, int>> additionalEdges = result.second;
+
+    if (minDistance == -1) {
+        cout << "Неможливо побудувати доповнення до Ейлерового циклу.\n";
+        cout << "Повний маршрут буде побудований з нуля.\n";
+    }
+    else {
+        cout << "Доповнений найкоротший шлях: " << minDistance << endl;
+        Graph g(n);
+        for (const auto& edge : e) {
+            g.addEdge(edge[0] - 1, edge[1] - 1);
+        }
+        cout << "Ейлеровий маршрут з доповненням:\n";
+        g.printEulerTour(additionalEdges); // Виводимо оновлений маршрут з додатковими ребрами
     }
 }
 
@@ -95,54 +155,84 @@ int main() {
     int n = 0;
     vector<vector<int>> e;
     bool repeat = 0;
+    bool extendPath = false; // Визначаємо режим програми
+    vector<vector<int>> previousPath; // Зберігає вже існуючий шлях
+
     do {
         // Запитуємо у користувача, як отримати дані
-        char choice, temp;
-        cout << "Використати шаблонні дані (1) чи ввести вручну (2)? Введіть 1 або 2: ";
-        cin >> choice;
+        char mode,choice, temp;
+        cout << "Вибір режиму програми: 1 - побудувати новий шлях, 2 - доповнити існуючий: ";
+        cin >> mode;
 
-        if (choice == '1') {
-            cout << "\nВибрати шаблон: 1 - приклад, 2 - за реал. ситуацією.\n";
-            cin >> temp;
-            switch (temp) {
-            case '1': // Порівнюємо з символом '1'
-                e = getTemplateData1(n);
-                break; // Додаємо break для виходу з switch
-            case '2': // Порівнюємо з символом '2'
-                e = getTemplateData2(n);
-                break; // Додаємо break для виходу з switch
-            default: // Обробляємо неправильний вибір
-                cout << "Невірний вибір шаблону. Повторіть будь-ласка.\n";
-                continue; // Повертаємося на початок циклу
+        if (mode == '1') {
+
+            previousPath.clear();
+            extendPath = false;
+
+            cout << "Вибір вхідних даних: 1 - використати шаблон, 2 - ручне введення: ";
+            cin >> choice;
+
+            if (choice == '1') {
+                cout << "Вибір шаблону: 1 - приклад, 2 - за реал. ситуацією: ";
+                cin >> temp;
+                switch (temp) {
+                case '1': // Порівнюємо з символом '1'
+                    cout << "\nВикористано дані шаблону 1\n";
+                    e = getTemplateData1(n);
+                    break; // Додаємо break для виходу з switch
+                case '2': // Порівнюємо з символом '2'
+                    cout << "\nВикористано дані шаблону 2\n";
+                    e = getTemplateData2(n);
+                    break; // Додаємо break для виходу з switch
+                default: // Обробляємо неправильний вибір
+                    cout << "\nНевірний вибір шаблону. Повторіть будь-ласка.\n";
+                    continue; // Повертаємося на початок циклу
+                }
+
+                printGraph(e, n); // Виводимо граф
             }
-            cout << "Використано шаблонні дані:\n";
-            printGraph(e, n); // Виводимо граф
+            else if (choice == '2') {
+                e = inputGraph(n); // Зчитуємо граф від користувача
+            }
+            else {
+                cout << "Невірний вибір. Повторіть будь-ласка.\n";
+                repeat = 0;
+                continue;
+            }
+
+            // Виклик chinesePostmanProblem для отримання ваги і додаткових ребер
+            auto result = sol.chinesePostmanProblem(e, n);
+            int minDistance = result.first;
+            vector<pair<int, int>> additionalEdges = result.second;
+
+            if (minDistance == -1) {
+                cout << "Неможливо побудувати Ейлерів цикл у графі.\n";
+            }
+            else {
+                cout << "Найкоротший шлях: " << minDistance << endl;
+                Graph g(n);
+                for (const auto& edge : e) {
+                    g.addEdge(edge[0] - 1, edge[1] - 1);
+                }
+                cout << "Ейлеровий маршрут:\n";
+                g.printEulerTour(additionalEdges); // Додаємо додаткові ребра
+                previousPath = e; // Зберігаємо поточний шлях
+            }
+
         }
-        else if (choice == '2') {
-            e = inputGraph(n);
+        else if (mode == '2') {
+            extendPath = true;
+            if (!previousPath.empty()) {
+                extendGraph(e, previousPath, n); // Доповнюємо граф новими даними
+            }
+            else {
+                cout << "Немає існуючого шляху для доповнення. Будь ласка, спочатку побудуйте початковий шлях.\n";
+                continue;
+            }
         }
         else {
             cout << "Невірний вибір. Повторіть будь-ласка.\n";
-            repeat = 0;
             continue;
-        }
-
-        // Виклик chinesePostmanProblem для отримання ваги і додаткових ребер
-        auto result = sol.chinesePostmanProblem(e, n);
-        int minDistance = result.first;
-        vector<pair<int, int>> additionalEdges = result.second;
-
-        if (minDistance == -1) {
-            cout << "Неможливо побудувати Ейлерів цикл у графі.\n";
-        }
-        else {
-            cout << "Найкоротший шлях: " << minDistance << endl;
-            Graph g(n);
-            for (const auto& edge : e) {
-                g.addEdge(edge[0] - 1, edge[1] - 1);
-            }
-            cout << "Ейлеровий маршрут:\n";
-            g.printEulerTour(additionalEdges); // Додаємо додаткові ребра
         }
 
         cout << "Повторити програму (0 - так, 1 - ні)?\n";
