@@ -3,13 +3,13 @@
 // КН-37-4
 // Algorhythms and Data Structures
 // Deadline: 28 November
-// Used time: 10 hour
+// Used time: 12 hour
 
 #include <iostream>
 #include <vector>
 #include <utility> // Для std::pair
 #include <limits>  // Для std::numeric_limits
-#include "CPP.h"
+#include "solution.h"
 #include "Fleury.h"
 #include "Windows.h"
 
@@ -52,11 +52,12 @@ void printGraph(const vector<vector<int>>& e, int n) {
 // Функція для доповнення існуючого графа та обчислення доповнення до маршруту
 void extendGraph(vector<vector<int>>& e, vector<vector<int>>& previousPath, int& n) {
     int newEdges, u, v, w;
+
     cout << "Введіть кількість нових вершин (якщо немає - введіть 0): ";
     int newNodes;
     cin >> newNodes;
 
-    // Якщо додаються нові вершини, оновлюємо кількість вершин в графі
+    // If new nodes are added, update the number of vertices in the graph
     n += newNodes;
 
     cout << "Введіть кількість нових ребер для доповнення графа: ";
@@ -68,11 +69,17 @@ void extendGraph(vector<vector<int>>& e, vector<vector<int>>& previousPath, int&
         e.push_back({ u, v, w });
     }
 
-    // Визначаємо, чи можливе доповнення існуючого шляху
+    // Add the existing edges from the previous path to the new graph
+    for (const auto& edge : previousPath) {
+        // Assuming edge is in the form of {start, end, weight}
+        e.push_back({ edge[0], edge[1], edge[2] }); // Add previous edges (ensure weight is correct)
+    }
+
+    // Recompute the Eulerian path with the augmented graph
     Solution sol;
-    auto result = sol.chinesePostmanProblem(e, n);
+    auto result = sol.ChinesePostmanProblem(e, n);
     int minDistance = result.first;
-    vector<pair<int, int>> additionalEdges = result.second;
+    vector<int> eulerCycle = result.second; // Change to vector<int> for vertices
 
     if (minDistance == -1) {
         cout << "Неможливо побудувати доповнення до Ейлерового циклу.\n";
@@ -80,15 +87,21 @@ void extendGraph(vector<vector<int>>& e, vector<vector<int>>& previousPath, int&
     }
     else {
         cout << "Доповнений найкоротший шлях: " << minDistance << endl;
-        Graph g(n);
 
-        // Додаємо ребра для маршруту
+        Graph g(n);
+        // Add edges for the current graph
         for (const auto& edge : e) {
-                g.addEdge(edge[0] - 1, edge[1] - 1);
+            g.addEdge(edge[0] - 1, edge[1] - 1); // Assuming 0-based index
         }
 
         cout << "Ейлеровий маршрут з доповненням:\n";
-        g.printEulerTour(additionalEdges); // Виводимо оновлений маршрут з додатковими ребрами
+        // Print the Eulerian cycle directly
+        for (int vertex : eulerCycle) {
+            cout << vertex + 1 << " "; // Print vertices in 1-based index
+        }
+        cout << endl;
+
+        previousPath = e; // Store the current path for future extensions
     }
 }
 
@@ -137,7 +150,7 @@ int main() {
     Solution sol;
     int n = 0;
     vector<vector<int>> e;
-    bool repeat = 0;
+    bool repeat = true;
     bool extendPath = false; // Визначаємо режим програми
     vector<vector<int>> previousPath; // Зберігає вже існуючий шлях
 
@@ -179,33 +192,32 @@ int main() {
             }
             else {
                 cout << "Невірний вибір. Повторіть будь-ласка.\n";
-                repeat = 0;
                 continue;
             }
 
             // Виклик chinesePostmanProblem для отримання ваги і додаткових ребер
-            auto result = sol.chinesePostmanProblem(e, n);
+            auto result = sol.ChinesePostmanProblem(e, n);
             int minDistance = result.first;
-            vector<pair<int, int>> additionalEdges = result.second;
+            vector<int> eulerCycle = result.second; // Ensure this is a vector of integers for vertices
 
             if (minDistance == -1) {
                 cout << "Неможливо побудувати Ейлерів цикл у графі.\n";
             }
             else {
                 cout << "Найкоротший шлях: " << minDistance << endl;
-                Graph g(n);
-                for (const auto& edge : e) {
-                    g.addEdge(edge[0] - 1, edge[1] - 1);
-                }
                 cout << "Ейлеровий маршрут:\n";
-                g.printEulerTour(additionalEdges); // Додаємо додаткові ребра
-                previousPath = e; // Зберігаємо поточний шлях
+                for (int vertex : eulerCycle) {
+                    cout << vertex + 1 << " "; // Output the sequence of vertices in 1-based index
+                }
+                cout << endl;
+
+                previousPath = e; // Store the current path
             }
 
         }
         else if (mode == '2') {
-            extendPath = true;
             if (!previousPath.empty()) {
+                extendPath = true;
                 extendGraph(e, previousPath, n); // Доповнюємо граф новими даними
             }
             else {
@@ -220,6 +232,12 @@ int main() {
 
         cout << "Повторити програму (0 - так, 1 - ні)?\n";
         cin >> repeat;
+
+        // Validate the repeat input
+        if (repeat != 0 && repeat != 1) {
+            cout << "Невірний вибір. Завершення програми.\n";
+            break; // Exit the loop if invalid input
+        }
 
     } while (repeat == 0);
 

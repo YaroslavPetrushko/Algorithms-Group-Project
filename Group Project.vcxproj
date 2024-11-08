@@ -127,8 +127,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CPP.cpp" />
-    <ClCompile Include="CPP.h" />
+    <ClCompile Include="solution.cpp" />
+    <ClCompile Include="solution.h" />
     <ClCompile Include="Fleury.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>

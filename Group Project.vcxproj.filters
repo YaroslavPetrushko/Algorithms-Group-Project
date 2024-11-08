@@ -18,10 +18,10 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CPP.h">
+    <ClCompile Include="solution.h">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CPP.cpp">
+    <ClCompile Include="solution.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Fleury.cpp">
