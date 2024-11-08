@@ -3,14 +3,14 @@
 // КН-37-4
 // Algorhythms and Data Structures
 // Deadline: 28 November
-// Used time: 10 hour
+// Used time: 14 hour
 
 #include <iostream>
 #include <vector>
 #include <utility> // Для std::pair
 #include <limits>  // Для std::numeric_limits
-#include "CPP.h"
-#include "Fleury.h"
+#include "Solution.h"
+#include "Graph.h"
 #include "Windows.h"
 
 using namespace std;
@@ -50,7 +50,7 @@ void printGraph(const vector<vector<int>>& e, int n) {
 }
 
 // Функція для доповнення існуючого графа та обчислення доповнення до маршруту
-void extendGraph(vector<vector<int>>& e, vector<vector<int>>& previousPath, int& n) {
+void extendGraph(vector<vector<int>>& e, vector<pair<int, int>>& previousPath, int& n) {
     int newEdges, u, v, w;
     cout << "Введіть кількість нових вершин (якщо немає - введіть 0): ";
     int newNodes;
@@ -76,19 +76,22 @@ void extendGraph(vector<vector<int>>& e, vector<vector<int>>& previousPath, int&
 
     if (minDistance == -1) {
         cout << "Неможливо побудувати доповнення до Ейлерового циклу.\n";
-        cout << "Повний маршрут буде побудований з нуля.\n";
+        cout << "Повний маршрут потрібно побудувати з нуля.\n";
     }
     else {
         cout << "Доповнений найкоротший шлях: " << minDistance << endl;
         Graph g(n);
 
-        // Додаємо ребра для маршруту
+        // Додаємо всі ребра з графа для обчислення шляху
         for (const auto& edge : e) {
-                g.addEdge(edge[0] - 1, edge[1] - 1);
+            g.addEdge(edge[0] - 1, edge[1] - 1);
         }
 
-        cout << "Ейлеровий маршрут з доповненням:\n";
-        g.printEulerTour(additionalEdges); // Виводимо оновлений маршрут з додатковими ребрами
+        // Отримуємо новий шлях із попереднього та додаткових ребер
+        vector<pair<int, int>> newPath = g.getEulerPath(additionalEdges);
+
+        // Виводимо оновлений маршрут із доповненням
+        g.printEulerExtend(previousPath, additionalEdges, newPath);
     }
 }
 
@@ -139,7 +142,7 @@ int main() {
     vector<vector<int>> e;
     bool repeat = 0;
     bool extendPath = false; // Визначаємо режим програми
-    vector<vector<int>> previousPath; // Зберігає вже існуючий шлях
+    vector<pair<int, int>> previousPath; // Зберігає вже існуючий шлях
 
     do {
         // Запитуємо у користувача, як отримати дані
@@ -197,15 +200,21 @@ int main() {
                 for (const auto& edge : e) {
                     g.addEdge(edge[0] - 1, edge[1] - 1);
                 }
-                cout << "Ейлеровий маршрут:\n";
-                g.printEulerTour(additionalEdges); // Додаємо додаткові ребра
-                previousPath = e; // Зберігаємо поточний шлях
+
+                //cout << "Ейлеровий маршрут:\n";
+                //g.printEulerTour(additionalEdges); // Додаємо додаткові ребра
+                
+                // Зберігаємо  пройдений шлях
+                previousPath = g.getEulerPath(additionalEdges);  // Зберігаємо шлях, а не всі ребра             
+
+                g.printEulerTour(previousPath);
             }
 
         }
         else if (mode == '2') {
             extendPath = true;
             if (!previousPath.empty()) {
+
                 extendGraph(e, previousPath, n); // Доповнюємо граф новими даними
             }
             else {

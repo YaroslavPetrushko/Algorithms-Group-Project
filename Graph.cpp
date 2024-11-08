@@ -1,36 +1,94 @@
 
-#include "Fleury.h"
+#include "Graph.h"
 using namespace std;
 
-void Graph::printEulerTour(const vector<pair<int, int>>& additionalEdges) {
-    // Додаємо додаткові ребра тільки якщо вони не існують
+vector<pair<int, int>> Graph::getEulerPath(const vector<pair<int, int>>& additionalEdges) {
+    // Додаємо додаткові ребра в граф
     for (const auto& edge : additionalEdges) {
-            addEdge(edge.first, edge.second);
+        addEdge(edge.first, edge.second);
     }
 
     // Знаходимо вершину з непарною степенем, якщо така є
     int u = 0;
-    for (int i = 0; i < V; i++)
+    for (int i = 0; i < V; i++) {
         if (adj[i].size() & 1) {
             u = i;
             break;
         }
+    }
 
-    // Вивід маршруту, починаючи з вершини з непарною степенем
-    printEulerUtil(u);
-    cout << endl;
+    vector<pair<int, int>> eulerPath;
+    getEulerPathUtil(u, eulerPath);  // Викликаємо допоміжну функцію для отримання шляху
+    
+    return eulerPath;
 }
 
-void Graph::printEulerUtil(int u) {
+void Graph::getEulerPathUtil(int u, vector<pair<int, int>>& eulerPath) {
     list<int>::iterator i;
     for (i = adj[u].begin(); i != adj[u].end(); ++i) {
         int v = *i;
         if (v != -1 && isValidNextEdge(u, v)) {
-            cout << (u + 1) << "-" << (v + 1) << " ";
+            eulerPath.push_back({ u, v });  // Додаємо пару (u, v) до шляху
             rmvEdge(u, v);
-            printEulerUtil(v);
+            getEulerPathUtil(v, eulerPath);  // Рекурсивно викликаємо для наступної вершини
         }
     }
+}
+
+void Graph::printEulerTour(const vector<pair<int, int>>& previousPath) {
+    cout << "Ейлеровий маршрут :\n";
+    for (const auto& edge : previousPath) {
+        cout << edge.first + 1 << "-" << edge.second + 1 << " ";  // Виводимо шлях, щоб перевірити, чи він зберігся
+    }
+    cout << endl;
+}
+
+//void Graph::printEulerUtil(int u) {
+//    list<int>::iterator i;
+//    for (i = adj[u].begin(); i != adj[u].end(); ++i) {
+//        int v = *i;
+//        if (v != -1 && isValidNextEdge(u, v)) {
+//            cout << (u + 1) << "-" << (v + 1) << " ";
+//            rmvEdge(u, v);
+//            printEulerUtil(v);
+//        }
+//    }
+//}
+
+void Graph::printEulerExtend(const vector<pair<int, int>>& previousPath,
+    const vector<pair<int, int>>& additionalEdges,
+    const vector<pair<int, int>>& newPath) {
+    cout << "=== Дебаг інформація ===\n";
+
+    // Виведення попереднього шляху
+    cout << "Попередній шлях:\n";
+    for (const auto& edge : previousPath) {
+        cout << edge.first + 1 << "-" << edge.second + 1 << " ";
+    }
+    cout << endl;
+
+    // Виведення додаткових ребер
+    cout << "Додаткові ребра для доповнення:\n";
+    for (const auto& edge : additionalEdges) {
+        cout << edge.first + 1 << "-" << edge.second + 1 << " ";
+    }
+    cout << endl;
+
+    // Виведення оновленого шляху
+    cout << "Оновлений Ейлеровий шлях:\n";
+    for (const auto& edge : newPath) {
+        cout << edge.first + 1 << "-" << edge.second + 1 << " ";
+    }
+    cout << "\n=======================\n";
+}
+
+
+// Функція для перевірки наявності ребра в графі
+bool Graph::edgeExists(int u, int v) {
+    for (auto& neighbor : adj[u]) {
+        if (neighbor == v) return true;
+    }
+    return false;
 }
 
 // Метод для обрахування загальної ваги ребер

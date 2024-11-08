@@ -29,9 +29,16 @@ public:
     }
     void rmvEdge(int u, int v);
 
-    // Methods to print Eulerian tour
-    void printEulerTour(const vector<pair<int, int>>& additionalEdges);
-    void printEulerUtil(int s);
+    // Methods to get Eulerian tour
+    vector<pair<int, int>> getEulerPath(const vector<pair<int, int>>& additionalEdges);
+    void getEulerPathUtil(int u, vector<pair<int, int>>& eulerPath);
+
+    //Print
+    void printEulerTour(const vector<pair<int, int>>& previousPath);
+    //void printEulerUtil(int s);
+    void printEulerExtend(const vector<pair<int, int>>& previousPath,
+        const vector<pair<int, int>>& additionalEdges,
+        const vector<pair<int, int>>& newPath);
 
     //Отримання загальної ваги ребер
     int getTotalWeight(const vector<vector<int>>& edges);
@@ -43,6 +50,8 @@ public:
     // Utility function to check if edge u-v is a valid next
     // edge in Eulerian trail or circuit
     bool isValidNextEdge(int u, int v);
+    bool edgeExists(int u, int v);
+
 
 private:
     vector<pair<int, int>> e; // Вектор для зберігання ребер графа

@@ -1,7 +1,8 @@
-#ifndef CPP_H // Захист від множинних включень
-#define CPP_H
+#ifndef SOLUTION_H // Захист від множинних включень
+#define SOLUTION_H
 
 #include <vector>
+#include <list>
 #include <utility> // Для std::pair
 using namespace std;
 
@@ -11,7 +12,6 @@ vector<vector<int>> floydWarshalls(vector<vector<pair<int, int>>>& g, int n);
 
 class Solution {
 public:
-    pair<int, vector<pair<int, int>>>  chinesePostmanProblem(vector<vector<int>>& e, int n);
+	pair<int, vector<pair<int, int>>>chinesePostmanProblem(vector<vector<int>>& e, int n);
 };
-
-#endif // CPP_H
+#endif // SOLUTION_H

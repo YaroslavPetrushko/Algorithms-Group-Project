@@ -1,5 +1,5 @@
 // Back-end complete function Template for C++
-#include "CPP.h"
+#include "Solution.h"
 #include <limits.h> // Для INT_MAX
 #include <stack>
 #include <unordered_map> // Для std::unordered_map
@@ -42,18 +42,21 @@ vector<vector<int>> floydWarshalls(vector<vector<pair<int, int>>>& g, int n)
 // Допоміжна функція для генерації всіх можливих пар непарних вузлів.
 void f(vector<int> o, int i, vector<vector<pair<int, int>>>& allOddPairs, vector<pair<int, int>> t, vector<bool>& v)
 {
+    //Base case: If all odd nodes have been considered, add the pair set to the resulting array.
     if (i == (int)o.size())
     {
         allOddPairs.push_back(t);
         return;
     }
 
+    //If the current odd node has already been paired, move to the next node.
     if (v[i])
     {
         f(o, i + 1, allOddPairs, t, v);
         return;
     }
 
+    //Choose the currentodd node as the start node and pair it with all the remaining odd nodes.
     v[i] = true;
     for (int j = 0; j < (int)o.size(); j++)
     {
@@ -66,6 +69,8 @@ void f(vector<int> o, int i, vector<vector<pair<int, int>>>& allOddPairs, vector
             v[j] = false;
         }
     }
+
+    //Reset the flag for the current odd node.
     v[i] = false;
 }
 
@@ -73,13 +78,13 @@ pair<int, vector<pair<int, int>>> Solution::chinesePostmanProblem(vector<vector<
     if (n == 0)
         return { -1, {} };
 
-    vector<int> o; // Массив для збереження вузлів з непарною степенем.
-    vector<vector<pair<int, int>>> g(n); // Список суміжностей графу.
-    int s = 0; // Сума ваг усіх ребер у графі.
+    vector<int> oddNodes; // Массив для збереження вузлів з непарною степенем.
+    vector<vector<pair<int, int>>> g(n); // Список ребер графу.
+    int totalWeight = 0; // Сума ваг усіх ребер у графі.
 
     // Створюємо список суміжностей графу та обчислюємо суму ваг.
     for (auto j : e) {
-        s += j[2];
+        totalWeight += j[2];
         g[j[0] - 1].push_back({ j[1] - 1, j[2] });
         g[j[1] - 1].push_back({ j[0] - 1, j[2] });
     }
@@ -87,25 +92,27 @@ pair<int, vector<pair<int, int>>> Solution::chinesePostmanProblem(vector<vector<
     // Знаходимо вузли з непарною степенем.
     for (int i = 0; i < n; i++) {
         if (g[i].size() % 2)
-            o.push_back(i);
+            oddNodes.push_back(i);
     }
 
-    if (o.size() == 0)
-        return { s, {} }; // Якщо немає непарних вузлів, граф вже Ейлерів.
+    if (oddNodes.size() == 0)
+        return { totalWeight, {} }; // Якщо немає непарних вузлів, граф вже Ейлерів.
 
-    vector<vector<int>> shortestPath = floydWarshalls(g, n);
-    vector<pair<int, int>> additionalEdges;
+    vector<pair<int, int>> additionalEdges; // Вектор додаткових ребер
+    vector<vector<int>> shortestPath = floydWarshalls(g, n); // Знаходимо найкоротші шляхи між усіма парами вершин.
+    int minDist = INT_MAX; // Мінімальна додаткова дистанція
 
-    // Генерація усіх можливих пар непарних вузлів і знаходження мінімальної ваги.
+    // Генеруємо усі можливі пари непарних вершин і знаходимо мінімальну вагу.
     vector<vector<pair<int, int>>> allOddPairs;
     vector<pair<int, int>> t;
-    vector<bool> vis(o.size(), false);
-    f(o, 0, allOddPairs, t, vis);
+    vector<bool> vis(oddNodes.size(), false);
+    f(oddNodes, 0, allOddPairs, t, vis);
 
-    int minDist = INT_MAX;
+    // Перебираємо всі можливі пари непарних вершин
     for (auto j : allOddPairs) {
         int tans = 0;
         vector<pair<int, int>> tempEdges;
+
         for (auto i : j) {
             if (shortestPath[i.first][i.second] == INT_MAX) {
                 tans = INT_MAX;
@@ -114,6 +121,8 @@ pair<int, vector<pair<int, int>>> Solution::chinesePostmanProblem(vector<vector<
             tans += shortestPath[i.first][i.second];
             tempEdges.push_back({ i.first, i.second });
         }
+
+        // Оновлюємо мінімальну додаткову дистанцію, якщо знайдено меншу вартість.
         if (tans < minDist) {
             minDist = tans;
             additionalEdges = tempEdges;
@@ -124,5 +133,5 @@ pair<int, vector<pair<int, int>>> Solution::chinesePostmanProblem(vector<vector<
         return { -1, {} }; // Немає можливості побудувати Ейлерів цикл.
 
     // Повертаємо загальну вагу і додаткові ребра для Ейлерового циклу.
-    return { s + minDist, additionalEdges };
+    return { totalWeight + minDist, additionalEdges };
 }
