@@ -134,7 +134,7 @@ void Graph::printEulerExtend(const vector<pair<int, int>>& previousPath,
     cout << endl;
 
     // Виведення додаткових ребер
-    cout << "Додаткові ребра для проходження:\n";
+    cout << "Додаткові ребра для доповнення:\n";
     for (const auto& edge : additionalEdges) {
         cout << edge.first + 1 << "-" << edge.second + 1 << " ";
     }
