@@ -3,8 +3,9 @@
 
 #include <vector>
 #include <utility> // Äëÿ std::pair
-#include <limits.h> // Äëÿ INT_MAX
+#include <limits> // Äëÿ INT_MAX
 #include <unordered_map> // Äëÿ std::unordered_map
+#include <queue>
 //#include <stack>
 //#include <list>
 
@@ -14,9 +15,12 @@ void f(vector<int> o, int i, vector<vector<pair<int, int>>>& allOddPairs, vector
 
 vector<vector<int>> floydWarshalls(vector<vector<pair<int, int>>>& g, int n);
 
+vector<int> dijkstra(int src, vector<vector<pair<int, int>>>& g, int n);
+//vector<vector<int>> findOddVertexPaths(const vector<vector<pair<int, int>>>& g, const vector<int>& oddVertices, int n);
+
 class Solution {
 public:
-	pair<int, vector<pair<int, int>>> findShortestPathThroughCommonVertex(int u, int v, const vector<vector<int>>& shortestPath, int n);
+	pair<int, vector<pair<int, int>>> findVertexPath(int u, int v, vector<vector<pair<int, int>>>& g, vector<pair<int, int>>& tempEdges, const vector<vector<int>>& shortestPath, int n);
 
 	pair<int, vector<pair<int, int>>>chinesePostmanProblem(vector<vector<int>>& e, int n);
 };

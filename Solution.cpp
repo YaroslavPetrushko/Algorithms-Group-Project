@@ -3,27 +3,115 @@
 #include "Solution.h"
 using namespace std;
 
-// Функція floydWarshalls реалізує адаптований алгоритм Флойда-Уоршалла
-// для знаходження найкоротших відстаней між усіма парами суміжних вершин в графі.
-vector<vector<int>> floydWarshalls(vector<vector<pair<int, int>>>& g, int n) {
-    // Ініціалізація матриці відстаней з безкінечністю (INT_MAX).
-    vector<vector<int>> d(n, vector<int>(n, INT_MAX));
+//// Алгоритм Дейкстри для знаходження найкоротшого шляху між двома вершинами
+//vector<int> dijkstra(const vector<vector<pair<int, int>>>& g, int start, int n) {
+//    vector<int> dist(n, INT_MAX);
+//    dist[start] = 0;
+//    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+//    pq.push({ 0, start });
+//
+//    while (!pq.empty()) {
+//        int u = pq.top().second;
+//        int d = pq.top().first;
+//        pq.pop();
+//
+//        if (d > dist[u]) continue;
+//
+//        for (auto& edge : g[u]) {
+//            int v = edge.first, weight = edge.second;
+//            if (dist[u] + weight < dist[v]) {
+//                dist[v] = dist[u] + weight;
+//                pq.push({ dist[v], v });
+//            }
+//        }
+//    }
+//
+//    return dist;
+//}
+//
+//// Знаходимо найкоротші шляхи для кожної пари непарних вершин
+//vector<vector<int>> findOddVertexPaths(const vector<vector<pair<int, int>>>& g, const vector<int>& oddVertices, int n) {
+//    vector<vector<int>> shortestPaths(oddVertices.size(), vector<int>(n, INT_MAX));
+//    for (int i = 0; i < oddVertices.size(); i++) {
+//        vector<int> dist = dijkstra(g, oddVertices[i], n);
+//        for (int j = 0; j < oddVertices.size(); j++) {
+//            shortestPaths[i][j] = dist[oddVertices[j]];
+//        }
+//    }
+//    return shortestPaths;
+//}
 
-    // Встановлюємо нулі для діагоналі матриці, оскільки шлях до самої себе дорівнює 0.
-    for (int i = 0; i < n; i++)
-        d[i][i] = 0;
+vector<int> dijkstra(int src, vector<vector<pair<int, int>>>& g, int n) {
+    vector<int> dist(n, INT_MAX);
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
+    pq.push({ 0, src });
+    dist[src] = 0;
 
-    // Призначення початкових ваг між суміжними вершинами.
-    for (int i = 0; i < n; i++) {
-        for (auto& j : g[i]) {
-            d[i][j.first] = j.second;  // Встановлення ваги між суміжними вершинами.
+    while (!pq.empty()) {
+        int u = pq.top().second;
+        int d = pq.top().first;
+        pq.pop();
+
+        if (d != dist[u]) continue;
+
+        for (auto& neighbor : g[u]) {
+            int v = neighbor.first, weight = neighbor.second;
+            if (dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                pq.push({ dist[v], v });
+            }
         }
     }
 
-    // Повертаємо матрицю найкоротших відстаней.
+    return dist;
+}
+
+
+vector<vector<int>> floydWarshalls(vector<vector<pair<int, int>>>& g, int n) {
+    vector<vector<int>> d(n, vector<int>(n, INT_MAX));
+    for (int i = 0; i < n; i++)
+        d[i][i] = 0;
+
+    for (int i = 0; i < n; i++) {
+        for (auto& j : g[i]) {
+            d[i][j.first] = j.second;
+        }
+    }
+
+    // Розрахунок найкоротших шляхів тільки для необхідних з'єднань
+    for (int k = 0; k < n; k++) {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (d[i][k] != INT_MAX && d[k][j] != INT_MAX && i != j) {
+                    d[i][j] = min(d[i][j], d[i][k] + d[k][j]);
+                }
+            }
+        }
+    }
     return d;
 }
 
+// Функція для пошуку найкоротшого шляху між двома вершинами через спільну вершину
+pair<int, vector<pair<int, int>>> Solution::findVertexPath(int u, int v, vector<vector<pair<int, int>>>&g, vector<pair<int, int>>&tempEdges, const vector<vector<int>>&shortestPath, int n) {
+    int minPath = INT_MAX;
+    vector<pair<int, int>> bestPath;
+
+    for (int k = 0; k < n; ++k) {
+        if (k != u && k != v && shortestPath[u][k] < INT_MAX && shortestPath[k][v] < INT_MAX) {
+            int pathLength = shortestPath[u][k] + shortestPath[k][v];
+            if (pathLength == shortestPath[u][v] && pathLength < minPath) {
+                minPath = pathLength;
+                bestPath = { {u, k}, {k, v} };
+            }
+        }
+    }
+
+    if (minPath < INT_MAX) {
+        tempEdges.insert(tempEdges.end(), bestPath.begin(), bestPath.end());
+    }
+
+    return { minPath, bestPath };
+}
 
 // Функція f рекурсивно генерує всі можливі пари для непарних вузлів,
 // необхідні для китайської задачі листоноші.
@@ -55,27 +143,6 @@ void f(vector<int> o, int i, vector<vector<pair<int, int>>>& allOddPairs, vector
     v[i] = false;
 }
 
-// Функція findShortestPathThroughCommonVertex шукає найкоротший шлях між двома
-// вершинами через спільну проміжну вершину, якщо прямий шлях відсутній.
-pair<int, vector<pair<int, int>>> Solution::findShortestPathThroughCommonVertex(int u, int v, const vector<vector<int>>& shortestPath, int n) {
-    int minPath = INT_MAX;
-    vector<pair<int, int>> bestPath;
-
-    for (int k = 0; k < n; ++k) {
-        // Перевіряємо, чи існує шлях від u до k і від k до v
-        if (k != u && k != v && shortestPath[u][k] < INT_MAX && shortestPath[k][v] < INT_MAX) {
-            int pathLength = shortestPath[u][k] + shortestPath[k][v];
-            if (pathLength < minPath) {
-                minPath = pathLength;
-                bestPath = { {u, k}, {k, v} };
-            }
-        }
-    }
-
-    // Повертаємо числове значення найкоротшого шляху між двома вершинами та вектор вершин
-    return { minPath, bestPath };
-}
-
 // Основна функція для розв'язання китайської задачі листоноші. Вона визначає,
 // які додаткові ребра потрібно додати до графа для побудови Ейлерового циклу.
 pair<int, vector<pair<int, int>>> Solution::chinesePostmanProblem(vector<vector<int>>& e, int n) {
@@ -102,8 +169,16 @@ pair<int, vector<pair<int, int>>> Solution::chinesePostmanProblem(vector<vector<
         return { totalWeight, {} }; // Якщо немає непарних вузлів, граф вже Ейлерів
 
     vector<pair<int, int>> additionalEdges; // Додаткові ребра для Ейлерового циклу.
-    vector<vector<int>> shortestPath = floydWarshalls(g, n); // Знаходимо найкоротші шляхи між парами вершин.
     int minDist = INT_MAX; // Мінімальна додаткова довжина
+
+    // Створення матриці найкоротших шляхів за допомогою Дейкстри
+    vector<vector<int>> shortestPath(n, vector<int>(n, INT_MAX));
+    for (int i = 0; i < n; ++i) {
+        vector<int> dist = dijkstra(i, g, n);
+        for (int j = 0; j < n; ++j) {
+            shortestPath[i][j] = dist[j];
+        }
+    }
 
     // Генеруємо всі можливі пари непарних вершин
     vector<vector<pair<int, int>>> allOddPairs;
@@ -117,34 +192,46 @@ pair<int, vector<pair<int, int>>> Solution::chinesePostmanProblem(vector<vector<
         vector<pair<int, int>> tempEdges;
 
         for (auto i : j) {
-            // Якщо прямий шлях відсутній, шукаємо шлях через проміжну вершину.
-            if (shortestPath[i.first][i.second] == INT_MAX || shortestPath[i.first][i.second] == 0) {
-                pair<int, vector<pair<int, int>>> result = findShortestPathThroughCommonVertex(i.first, i.second, shortestPath, n);
-                int pathLength = result.first;
-                vector<pair<int, int>> pathEdges = result.second;
+            // Перевірка, чи існує шлях між парою вузлів i.first та i.second
+            if (shortestPath[i.first][i.second] == INT_MAX) {
+                tans = INT_MAX; // Якщо шляху немає, перериваємо
+                break;
+            }
 
-                // Перевіряємо, чи знайдено шлях через спільну вершину
-                if (pathLength == INT_MAX) {
-                    tans = INT_MAX;
+            // Перевіряємо, чи існує прямий шлях між i.first та i.second
+            bool directEdgeExists = false;
+            int directEdgeWeight = INT_MAX;
+            for (auto& neighbor : g[i.first]) {
+                if (neighbor.first == i.second) {
+                    directEdgeExists = true;
+                    directEdgeWeight = neighbor.second;
                     break;
                 }
-
-                tans += pathLength;
-                tempEdges.insert(tempEdges.end(), pathEdges.begin(), pathEdges.end());
             }
-            else {
-                // Якщо прямий шлях існує, додаємо його
+
+            // Якщо існує прямий шлях і його довжина відповідає мінімальній
+            if (directEdgeExists && directEdgeWeight == shortestPath[i.first][i.second]) {
                 tans += shortestPath[i.first][i.second];
                 tempEdges.push_back({ i.first, i.second });
             }
+            else {
+                // Інакше шукаємо шлях через проміжні вершини за допомогою findVertexPath
+                auto result = findVertexPath(i.first, i.second, g, tempEdges, shortestPath, n);
+                if (result.first == INT_MAX) {
+                    tans = INT_MAX; // Якщо шлях недосяжний, перериваємо
+                    break;
+                }
+                tans += result.first;
+            }
         }
 
-        // Оновлюємо мінімальну додаткову дистанцію, якщо знайдено меншу вартість
+        // Оновлення мінімальної додаткової дистанції
         if (tans < minDist) {
             minDist = tans;
             additionalEdges = tempEdges;
         }
     }
+
 
     if (minDist == INT_MAX)
         return { -1, {} }; // Немає можливості побудувати Ейлерів цикл

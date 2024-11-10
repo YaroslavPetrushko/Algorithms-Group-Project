@@ -51,7 +51,7 @@ int main() {
                     break;
                 case '2':
                     cout << "\nВикористано дані шаблону 2\n";
-                    //e = getTemplateData2(n);
+                    e = getTemplateData2(n);
                     break;
                 default: 
                     cout << "\nНевірний вибір шаблону. Повторіть будь-ласка.\n";
