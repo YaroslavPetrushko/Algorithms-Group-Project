@@ -1,19 +1,21 @@
-// A C++ program print Eulerian Trail in a given Eulerian or
-// Semi-Eulerian Graph
 #include <algorithm>
+#include <iomanip>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <list>
 #include <string.h>
 #include <vector>
-#include <sstream>
+
 using namespace std;
 
-// A class that represents an undirected graph
+// Клас, що репрезентує граф
 class Graph {
-    int V; // No. of vertices
-    list<int>* adj; // A dynamic array of adjacency lists
+    int V; // Кількість вершин
+    list<int>* adj; // Динамічний масив списків суміжності
+
 public:
-    // Constructor and destructor
+    // Конструктор та деструктор
     Graph(int V)
     {
         this->V = V;
@@ -21,21 +23,27 @@ public:
     }
     ~Graph() { delete[] adj; }
 
-    // functions to add and remove edge
-    void addEdge(int u, int v)
-    {
-        adj[u].push_back(v);
-        adj[v].push_back(u);
-    }
+    // Функція для додавання та видалення ребер графу
+    void addEdge(int u, int v);
     void rmvEdge(int u, int v);
 
-    // Methods to get Eulerian tour
+    // Функція для виведення графа
+    void printGraph(const vector<vector<int>>& e, int n);
+
+    //Функція для запису шляху до файлу CPP_output.txt
+    void writePathToFile(const vector<vector<int>>& edges, const vector<pair<int, int>>& eulerPath);
+
+    //Функція для запису оновленого шляху до файлу CPP_extend.txt
+    void writeExtendedPathToFile(const vector<vector<int>>& edges, 
+        const vector<pair<int, int>>& newPath,
+        const vector<pair<int, int>>& additionalEdges);
+
+    // Методи для визначення Ейлерового шляху
     vector<pair<int, int>> getEulerPath(const vector<pair<int, int>>& additionalEdges);
     void getEulerPathUtil(int u, vector<pair<int, int>>& eulerPath);
 
-    //Print
+    //Методи для виведення Ейлерового шляху в консоль
     void printEulerTour(const vector<pair<int, int>>& previousPath);
-    //void printEulerUtil(int s);
     void printEulerExtend(const vector<pair<int, int>>& previousPath,
         const vector<pair<int, int>>& additionalEdges,
         const vector<pair<int, int>>& newPath);
@@ -43,15 +51,13 @@ public:
     //Отримання загальної ваги ребер
     int getTotalWeight(const vector<vector<int>>& edges);
 
-    // This function returns count of vertices reachable
-    // from v. It does DFS
+    // Функція що повертає кількість досяжних вершин
     int DFSCount(int v, bool visited[]);
 
-    // Utility function to check if edge u-v is a valid next
-    // edge in Eulerian trail or circuit
-    bool isValidNextEdge(int u, int v);
+    // Допоміжна функції для перевірки, чи є ребро u-v дійсним
+    // та чи є наступним ребром у Ейлеровому шляху
     bool edgeExists(int u, int v);
-
+    bool isValidNextEdge(int u, int v);
 
 private:
     vector<pair<int, int>> e; // Вектор для зберігання ребер графа
