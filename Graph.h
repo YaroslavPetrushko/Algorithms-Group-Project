@@ -1,9 +1,11 @@
 #include <algorithm>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <list>
 #include <string.h>
 #include <vector>
-//#include <sstream>
+
 using namespace std;
 
 // Клас, що репрезентує граф
@@ -21,12 +23,19 @@ public:
     ~Graph() { delete[] adj; }
 
     // Функція для додавання та видалення ребер графу
-    void addEdge(int u, int v)
-    {
-        adj[u].push_back(v);
-        adj[v].push_back(u);
-    }
+    void addEdge(int u, int v);
     void rmvEdge(int u, int v);
+
+    // Функція для виведення графа
+    void printGraph(const vector<vector<int>>& e, int n);
+
+    //Функція для запису шляху до файлу CPP_output.txt
+    void writePathToFile(const vector<vector<int>>& edges, const vector<pair<int, int>>& eulerPath);
+
+    //Функція для запису оновленого шляху до файлу CPP_extend.txt
+    void writeExtendedPathToFile(const vector<vector<int>>& edges, 
+        const vector<pair<int, int>>& newPath,
+        const vector<pair<int, int>>& additionalEdges);
 
     // Методи для визначення Ейлерового шляху
     vector<pair<int, int>> getEulerPath(const vector<pair<int, int>>& additionalEdges);
@@ -52,16 +61,3 @@ public:
 private:
     vector<pair<int, int>> e; // Вектор для зберігання ребер графа
 };
-
-// Перетворення числових індексів в символи
-char indexToChar(int index);
-
-// Введення графа від користувача
-vector<vector<int>> inputGraph(int& n);
-
-// Функція для виведення графа
-void printGraph(const vector<vector<int>>& e, int n);
-
-// Шаблонні дані для тестування
-vector<vector<int>> getTemplateData1(int& n);
-vector<vector<int>> getTemplateData2(int& n);

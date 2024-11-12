@@ -6,6 +6,8 @@
 // Used time: 20 hour
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <vector>
 #include <utility> // Для std::pair
 #include <limits>  // Для std::numeric_limits
@@ -15,22 +17,32 @@
 
 using namespace std;
 
+//char indexToChar(int index);
+
+// Шаблонні дані для тестування
+vector<vector<int>> getData(int& n);
+
 void extendGraph(vector<vector<int>>& e, vector<pair<int, int>>& previousPath, int& n);
 
 int main() {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    Solution sol;
     int n = 0;
+    Solution sol;
+    Graph g(n);
     vector<vector<int>> e;
-    bool repeat = 0;
+    bool repeat = 1;
     bool extendPath = false; // Визначаємо режим програми
     vector<pair<int, int>> previousPath; // Зберігає вже існуючий шлях
 
     do {
-        char mode,choice, temp;
-        cout << "Вибір режиму програми: 1 - побудувати новий шлях, 2 - доповнити існуючий: ";
+        char mode, choice, temp;
+        if (extendPath)
+        cout << "Вибір режиму програми: 1 - побудувати новий шлях, 2 - доповнити існуючий: "; //1 - побудувати новий шлях відкриваючи файл, 2 - доповнити існуючий шлях у файлі
+        else 
+            cout << "Вибір режиму програми: 1 - побудувати новий шлях: "; //1 - побудувати новий шлях відкриваючи файл
+
         cin >> mode;
 
         if (mode == '1') {
@@ -38,36 +50,11 @@ int main() {
             previousPath.clear();
             extendPath = false;
 
-            cout << "Вибір вхідних даних: 1 - використати шаблон, 2 - ручне введення: ";
-            cin >> choice;
+            cout << "\nВикористано дані з текстового файлу CPP.txt\n";
 
-            if (choice == '1') {
-                cout << "Вибір шаблону: 1 - приклад, 2 - за реал. ситуацією: ";
-                cin >> temp;
-                switch (temp) {
-                case '1': 
-                    cout << "\nВикористано дані шаблону 1\n";
-                    e = getTemplateData1(n);
-                    break;
-                case '2':
-                    cout << "\nВикористано дані шаблону 2\n";
-                    e = getTemplateData2(n);
-                    break;
-                default: 
-                    cout << "\nНевірний вибір шаблону. Повторіть будь-ласка.\n";
-                    continue; // Повертаємося на початок циклу
-                }
+            e = getData(n); // Читаємо текстовий файл CPP.txt 
 
-                printGraph(e, n); // Виводимо граф
-            }
-            else if (choice == '2') {
-                e = inputGraph(n); // Користувач вводить дані графа
-            }
-            else {
-                cout << "Невірний вибір. Повторіть будь-ласка.\n";
-                repeat = 0;
-                continue;
-            }
+            g.printGraph(e, n); // Виводимо граф
 
             // Виклик chinesePostmanProblem для отримання мінімальної довжини і додаткових ребер
             auto result = sol.chinesePostmanProblem(e, n);
@@ -83,16 +70,20 @@ int main() {
                 for (const auto& edge : e) {
                     g.addEdge(edge[0] - 1, edge[1] - 1);
                 }
-                
+
                 // Зберігаємо пройдений шлях
                 previousPath = g.getEulerPath(additionalEdges);  // Зберігаємо шлях, а не всі ребра             
 
                 g.printEulerTour(previousPath);
-            }
 
+                //Запис результатів до файлу CPP_output.txt
+                g.writePathToFile(e, previousPath);
+
+                extendPath = true;
+            }
         }
-        else if (mode == '2') {
-            extendPath = true;
+        else if (extendPath&&mode == '2') {
+            
             if (!previousPath.empty()) {
                 extendGraph(e, previousPath, n); // Доповнюємо граф новими даними
             }
@@ -107,10 +98,10 @@ int main() {
         }
 
         //Запит на повторення програми
-        cout << "Повторити програму (0 - так, 1 - ні)?\n";
+        cout << "Повторити програму (1 - так, 0 - ні)?\n";
         cin >> repeat;
 
-    } while (repeat == 0);
+    } while (repeat == 1);
 
     return 0;
 }
@@ -134,7 +125,7 @@ void extendGraph(vector<vector<int>>& e, vector<pair<int, int>>& previousPath, i
         e.push_back({ u, v, w });
     }
 
-    // Виклик Chinese Postman Problem для обчислення додаткових ребер для повного маршруту
+    // Виклик CPP для обчислення додаткових ребер для повного маршруту
     Solution sol;
     auto result = sol.chinesePostmanProblem(e, n);
     int minDistance = result.first;
@@ -153,11 +144,36 @@ void extendGraph(vector<vector<int>>& e, vector<pair<int, int>>& previousPath, i
             g.addEdge(edge[0] - 1, edge[1] - 1);
         }
 
-        // Отримуємо новий шлях із попереднього та додаткових ребер
+        // Будуємо новий шлях із попереднього шляху та додаткових ребер
         vector<pair<int, int>> newPath = g.getEulerPath(additionalEdges);
 
         // Виводимо оновлений маршрут із доповненням
         g.printEulerExtend(previousPath, additionalEdges, newPath);
+
+        //Запис результатів до CPP_extend.txt
+        g.writeExtendedPathToFile(e, newPath, additionalEdges);
     }
 }
 
+//// Функція для перетворення числових індексів у символи
+//char indexToChar(int index) {
+//    return 'A' + index; // Перетворює 0 в 'A', 1 в 'B', і т.д.
+//}
+
+// Функція, зчитує текстовий файл для отримання даних про граф
+vector<vector<int>> getData(int& n) {
+    std::ifstream file("CPP.txt"); // назва файлу може змінюватися відповідно до вимог
+    if (!file.is_open()) {
+        throw std::runtime_error("Помилка відкриття файлу");
+    }
+
+    vector<vector<int>> edges;
+    file >> n;  // перший рядок містить кількість точок
+    int u, v, w;
+
+    while (file >> u >> v >> w) {
+        edges.push_back({ u, v, w });
+    }
+    file.close();
+    return edges;
+}

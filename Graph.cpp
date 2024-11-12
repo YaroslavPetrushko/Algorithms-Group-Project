@@ -3,77 +3,71 @@
 #include "Graph.h"
 using namespace std;
 
-// Функція для перетворення числових індексів у символи
-char indexToChar(int index) {
-    return 'A' + index; // Перетворює 0 в 'A', 1 в 'B', і т.д.
-}
-
-// Функція для зчитування графа від користувача
-vector<vector<int>> inputGraph(int& n) {
-    cout << "Введіть кількість вершин: ";
-    cin >> n;
-    int edges;
-    cout << "Введіть кількість ребер: ";
-    cin >> edges;
-
-    vector<vector<int>> e;
-    cout << "Введіть ребра у форматі 'початок кінець вага':\n";
-    for (int i = 0; i < edges; ++i) {
-        int u, v, w;
-        cin >> u >> v >> w;
-        e.push_back({ u, v, w });
-    }
-    return e;
-}
 
 // Функція для виведення графа
-void printGraph(const vector<vector<int>>& e, int n) {
+void Graph::printGraph(const vector<vector<int>>& e, int n) {
     cout << "Дані графу.\n";
     cout << "Кількість вершин: " << n << endl;
+    cout << "Кількість ребер: " << e.size()<< endl;
     cout << "Ребра:\n";
     for (const auto& edge : e) {
-        cout << "Вершина " << indexToChar(edge[0] - 1) << " - Вершина "
-            << indexToChar(edge[1] - 1) << ": вага " << edge[2] << endl;
+        cout << "Вершина " << edge[0] << " - Вершина "
+            << edge[1] << ": вага " << edge[2] << endl;
     }
 }
 
+//Функція для запису маршруту до файлу CPP_output.txt
+void Graph::writePathToFile(const vector<vector<int>>& edges, const vector<pair<int, int>>& eulerPath) {
+    ofstream outFile("CPP_output.txt");
+    if (outFile.is_open()) {
+        outFile << "Кількість вершин: " << V << "\n";
+        outFile << "Кількість ребер: " << edges.size() << "\n";
 
-// Функція для використання шаблонних даних 1
-vector<vector<int>> getTemplateData1(int& n) {
-    n = 5; // Кількість точок
-    return {
-        {1, 2, 100}, // A - B: 100
-        {1, 3, 150}, // A - C: 150
-        {2, 3, 120}, // B - C: 120
-        {2, 4, 200}, // B - D: 200
-        {3, 4, 180}, // C - D: 180
-        {3, 5, 160}, // C - E: 160
-        {4, 5, 140}  // D - E: 140
-    };
+        // Запис ребер
+        outFile << "Ребра:\n";
+        for (const auto& edge : edges) {
+            outFile << edge[0] << " " << edge[1] << " " << edge[2] << "\n";
+        }
+
+        // Запис маршруту
+        outFile << "Маршрут:\n";
+        for (const auto& edge : eulerPath) {
+            outFile << edge.first+1 << " " << edge.second+1 << "\n";
+        }
+
+        outFile.close();
+    }
 }
 
-// Функція для використання шаблонних даних 2
-vector<vector<int>> getTemplateData2(int& n) {
-    n = 13; // Кількість точок
-    return {
-        {1, 2, 1300}, // A - B: 1300
-        {1, 10, 550}, // A - J: 550
-        {2, 3, 350},  // B - C: 350
-        {3, 4, 150},  // C - D: 150
-        {3, 11, 500}, // C - K: 500
-        {4, 5, 500},  // D - E: 500
-        {4, 12, 350}, // D - L: 350
-        {5, 6, 350},  // E - F: 350
-        {6, 7, 350},  // F - G: 350
-        {6, 13, 240}, // F - M: 240
-        {7, 8, 260},  // G - H: 260
-        {8, 9, 490},  // H - I: 490
-        {8, 13, 350}, // H - M: 350
-        {9, 10, 260}, // I - J: 260
-        {9, 11, 350}, // I - K: 350
-        {11, 12, 150},// K - L: 150
-        {12, 13, 210} // L - M: 210
-    };
+// Запис оновленого шлязу в CPP_extend.txt
+void Graph::writeExtendedPathToFile(const vector<vector<int>>& edges,
+    const vector<pair<int, int>>& newPath,
+    const vector<pair<int, int>>& additionalEdges) {
+    std::ofstream outFile("CPP_extend.txt");
+    if (outFile.is_open()) {
+        outFile << "Кількість вершин: " << V << "\n";
+        outFile << "Кількість ребер: " << edges.size() << "\n";
+
+        // Write edges in structured format
+        outFile << "Ребра:\n";
+        for (const auto& edge : edges) {
+            outFile << edge[0] << " " << edge[1] << " " << edge[2] << "\n";
+        }
+
+        // Write additional edges that complete the Eulerian path
+        outFile << "Повторне проходження ребер:\n";
+        for (const auto& edge : additionalEdges) {
+            outFile << edge.first << " " << edge.second << "\n";
+        }
+
+        // Write the new Eulerian path in structured format
+        outFile << "Оновлений шлях:\n";
+        for (const auto& edge : newPath) {
+            outFile << edge.first << " " << edge.second << "\n";
+        }
+
+        outFile.close();
+    }
 }
 
 // Метод getEulerPath створює Ейлерів шлях для графа.
@@ -97,6 +91,7 @@ vector<pair<int, int>> Graph::getEulerPath(const vector<pair<int, int>>& additio
     
     // Повертаємо Ейлеровий шлях
     return eulerPath;
+
 }
 
 // Допоміжний метод getEulerPathUtil для побудови Ейлерового шляху.
@@ -114,7 +109,7 @@ void Graph::getEulerPathUtil(int u, vector<pair<int, int>>& eulerPath) {
 
 // Метод printEulerTour виводить Ейлерів маршрут на екран.
 void Graph::printEulerTour(const vector<pair<int, int>>& previousPath) {
-    cout << "Ейлеровий маршрут :\n";
+    cout << "Оптимальний маршрут :\n";
     for (const auto& edge : previousPath) {
         cout << edge.first + 1 << "-" << edge.second + 1 << " ";  // Виводимо шлях, щоб перевірити, чи він зберігся
     }
@@ -134,7 +129,7 @@ void Graph::printEulerExtend(const vector<pair<int, int>>& previousPath,
     cout << endl;
 
     // Виведення додаткових ребер
-    cout << "Додаткові ребра для проходження:\n";
+    cout << "Повторне проходження ребер:\n";
     for (const auto& edge : additionalEdges) {
         cout << edge.first + 1 << "-" << edge.second + 1 << " ";
     }
@@ -146,6 +141,8 @@ void Graph::printEulerExtend(const vector<pair<int, int>>& previousPath,
         cout << edge.first + 1 << "-" << edge.second + 1 << " ";
     }
     cout << endl;
+
+    //треба записати результат у файл CPP_extend.txt
 }
 
 // Метод для обрахування загальної ваги ребер
@@ -200,6 +197,13 @@ bool Graph::isValidNextEdge(int u, int v)
 
     // 2.d) Якщо count1 більше, ніж count2, тоді ребро (u, v) є мостом
     return (count1 > count2) ? false : true;
+}
+
+//Функція для додавання ребер
+void Graph::addEdge(int u, int v)
+{
+    adj[u].push_back(v);
+    adj[v].push_back(u);
 }
 
 // Функція для видалення ребра u-v з графа. Видаляє ребро шляхом заміни значення суміжної вершини на -1.

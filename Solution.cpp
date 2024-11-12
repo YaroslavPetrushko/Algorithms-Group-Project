@@ -3,45 +3,8 @@
 #include "Solution.h"
 using namespace std;
 
-//// Алгоритм Дейкстри для знаходження найкоротшого шляху між двома вершинами
-//vector<int> dijkstra(const vector<vector<pair<int, int>>>& g, int start, int n) {
-//    vector<int> dist(n, INT_MAX);
-//    dist[start] = 0;
-//    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
-//    pq.push({ 0, start });
-//
-//    while (!pq.empty()) {
-//        int u = pq.top().second;
-//        int d = pq.top().first;
-//        pq.pop();
-//
-//        if (d > dist[u]) continue;
-//
-//        for (auto& edge : g[u]) {
-//            int v = edge.first, weight = edge.second;
-//            if (dist[u] + weight < dist[v]) {
-//                dist[v] = dist[u] + weight;
-//                pq.push({ dist[v], v });
-//            }
-//        }
-//    }
-//
-//    return dist;
-//}
-//
-//// Знаходимо найкоротші шляхи для кожної пари непарних вершин
-//vector<vector<int>> findOddVertexPaths(const vector<vector<pair<int, int>>>& g, const vector<int>& oddVertices, int n) {
-//    vector<vector<int>> shortestPaths(oddVertices.size(), vector<int>(n, INT_MAX));
-//    for (int i = 0; i < oddVertices.size(); i++) {
-//        vector<int> dist = dijkstra(g, oddVertices[i], n);
-//        for (int j = 0; j < oddVertices.size(); j++) {
-//            shortestPaths[i][j] = dist[oddVertices[j]];
-//        }
-//    }
-//    return shortestPaths;
-//}
-
-vector<int> dijkstra(int src, vector<vector<pair<int, int>>>& g, int n) {
+//Алгоритм Дейсктри для визначення найкоротшого шлязу від однієї точки
+vector<int> Solution::dijkstra(int src, vector<vector<pair<int, int>>>& g, int n) {
     vector<int> dist(n, INT_MAX);
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
     pq.push({ 0, src });
@@ -66,57 +29,10 @@ vector<int> dijkstra(int src, vector<vector<pair<int, int>>>& g, int n) {
     return dist;
 }
 
-
-vector<vector<int>> floydWarshalls(vector<vector<pair<int, int>>>& g, int n) {
-    vector<vector<int>> d(n, vector<int>(n, INT_MAX));
-    for (int i = 0; i < n; i++)
-        d[i][i] = 0;
-
-    for (int i = 0; i < n; i++) {
-        for (auto& j : g[i]) {
-            d[i][j.first] = j.second;
-        }
-    }
-
-    // Розрахунок найкоротших шляхів тільки для необхідних з'єднань
-    for (int k = 0; k < n; k++) {
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                if (d[i][k] != INT_MAX && d[k][j] != INT_MAX && i != j) {
-                    d[i][j] = min(d[i][j], d[i][k] + d[k][j]);
-                }
-            }
-        }
-    }
-    return d;
-}
-
-// Функція для пошуку найкоротшого шляху між двома вершинами через спільну вершину
-pair<int, vector<pair<int, int>>> Solution::findVertexPath(int u, int v, vector<vector<pair<int, int>>>&g, vector<pair<int, int>>&tempEdges, const vector<vector<int>>&shortestPath, int n) {
-    int minPath = INT_MAX;
-    vector<pair<int, int>> bestPath;
-
-    for (int k = 0; k < n; ++k) {
-        if (k != u && k != v && shortestPath[u][k] < INT_MAX && shortestPath[k][v] < INT_MAX) {
-            int pathLength = shortestPath[u][k] + shortestPath[k][v];
-            if (pathLength == shortestPath[u][v] && pathLength < minPath) {
-                minPath = pathLength;
-                bestPath = { {u, k}, {k, v} };
-            }
-        }
-    }
-
-    if (minPath < INT_MAX) {
-        tempEdges.insert(tempEdges.end(), bestPath.begin(), bestPath.end());
-    }
-
-    return { minPath, bestPath };
-}
-
 // Функція f рекурсивно генерує всі можливі пари для непарних вузлів,
 // необхідні для китайської задачі листоноші.
-void f(vector<int> o, int i, vector<vector<pair<int, int>>>& allOddPairs, vector<pair<int, int>> t, vector<bool>& v) {
-    
+void Solution::f(vector<int> o, int i, vector<vector<pair<int, int>>>& allOddPairs, vector<pair<int, int>> t, vector<bool>& v) {
+
     if (i == (int)o.size()) { // Базовий випадок: всі непарні вузли з'єднано в пари
         allOddPairs.push_back(t);
         return;
@@ -141,6 +57,28 @@ void f(vector<int> o, int i, vector<vector<pair<int, int>>>& allOddPairs, vector
     }
 
     v[i] = false;
+}
+
+// Функція для пошуку найкоротшого шляху між двома вершинами через спільну вершину
+pair<int, vector<pair<int, int>>> Solution::findVertexPath(int u, int v, vector<vector<pair<int, int>>>&g, vector<pair<int, int>>&tempEdges, const vector<vector<int>>&shortestPath, int n) {
+    int minPath = INT_MAX;
+    vector<pair<int, int>> bestPath;
+
+    for (int k = 0; k < n; ++k) {
+        if (k != u && k != v && shortestPath[u][k] < INT_MAX && shortestPath[k][v] < INT_MAX) {
+            int pathLength = shortestPath[u][k] + shortestPath[k][v];
+            if (pathLength == shortestPath[u][v] && pathLength < minPath) {
+                minPath = pathLength;
+                bestPath = { {u, k}, {k, v} };
+            }
+        }
+    }
+
+    if (minPath < INT_MAX) {
+        tempEdges.insert(tempEdges.end(), bestPath.begin(), bestPath.end());
+    }
+
+    return { minPath, bestPath };
 }
 
 // Основна функція для розв'язання китайської задачі листоноші. Вона визначає,
