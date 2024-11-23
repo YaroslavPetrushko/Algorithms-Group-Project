@@ -3,7 +3,7 @@
 // КН-37-4
 // Algorhythms and Data Structures
 // Deadline: 28 November
-// Used time: 20 hour
+// Used time: 25 hour
 
 #include <iostream>
 #include <fstream>
@@ -17,80 +17,104 @@
 
 using namespace std;
 
-//char indexToChar(int index);
-
-// Шаблонні дані для тестування
-vector<vector<int>> getData(int& n);
-
-void extendGraph(vector<vector<int>>& e, vector<pair<int, int>>& previousPath, int& n);
+// Отримання даних через відкриття текстового файлу
+pair<int, vector<vector<int>>> getData(string filename);
 
 int main() {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    int n = 0;
-    Solution sol;
-    Graph g(n);
-    vector<vector<int>> e;
-    bool repeat = 1;
-    bool extendPath = false; // Визначаємо режим програми
-    vector<pair<int, int>> previousPath; // Зберігає вже існуючий шлях
+    int fileChoose; //Вибір файлу
+    Solution sol; //Рішення
+    vector<vector<int>> edges; //Ребра
+    int numberOfVertex = 0; //Кількість вершин
+    string filename; //Назва файлу
+    bool repeat = true, repeatInput=true; //Повторення програми
 
     do {
-        char mode, choice, temp;
-        if (extendPath)
-        cout << "Вибір режиму програми: 1 - побудувати новий шлях, 2 - доповнити існуючий: "; //1 - побудувати новий шлях відкриваючи файл, 2 - доповнити існуючий шлях у файлі
-        else 
-            cout << "Вибір режиму програми: 1 - побудувати новий шлях: "; //1 - побудувати новий шлях відкриваючи файл
-
+        char mode;
+        cout << "Вибір режиму програми: 1 - побудувати маршрут на основі даних файлу, 2 - ввести дані вручну: "; //1 - побудувати новий шлях відкриваючи файл, 2 - доповнити існуючий шлях у файлі
         cin >> mode;
 
         if (mode == '1') {
 
-            previousPath.clear();
-            extendPath = false;
+            cout << "Виберіть файл для даних графу (1, 2, 3): ";
+            cin >> fileChoose;
+            switch (fileChoose) {
+            case 0: filename = "CPP.txt"; break;
+            case 1: filename = "Path_1.txt"; break;
+            case 2: filename = "Path_2.txt"; break;
+            case 3: filename = "Path_3.txt"; break;
+            default: cout << "Невірний вибір.\n"; continue;
+            }
 
-            cout << "\nВикористано дані з текстового файлу CPP.txt\n";
+            auto graphData = getData(filename);
+            numberOfVertex = graphData.first;
+            edges = graphData.second;
 
-            e = getData(n); // Читаємо текстовий файл CPP.txt 
+            // Виведення графу
+            Graph graph(numberOfVertex);
+            graph.printGraph(edges, numberOfVertex);
 
-            g.printGraph(e, n); // Виводимо граф
+            // Перенумерація графа
+            vector<vector<int>> renumberedEdges = graph.renumberGraph(edges);
 
-            // Виклик chinesePostmanProblem для отримання мінімальної довжини і додаткових ребер
-            auto result = sol.chinesePostmanProblem(e, n);
-            int minDistance = result.first;
-            vector<pair<int, int>> additionalEdges = result.second;
-
-            if (minDistance == -1) {
-                cout << "Неможливо побудувати Ейлерів цикл у графі.\n";
+            // Виклик функції для розв'язання задачі
+            auto result = sol.chinesePostmanProblem(renumberedEdges, numberOfVertex);
+            if (result.first == -1) {
+                cout << "Неможливо побудувати маршрут.\n";
             }
             else {
-                cout << "Найкоротший шлях: " << minDistance << endl;
-                Graph g(n);
-                for (const auto& edge : e) {
-                    g.addEdge(edge[0] - 1, edge[1] - 1);
+                cout << "Оптимальна довжина маршруту: " << result.first << " метрів.\n";
+
+                for (const auto& edge : renumberedEdges) {
+                    graph.addEdge(edge[0]-1, edge[1]-1);
                 }
 
-                // Зберігаємо пройдений шлях
-                previousPath = g.getEulerPath(additionalEdges);  // Зберігаємо шлях, а не всі ребра             
+                // Отримання Ейлерового циклу
+                vector<pair<int, int>> eulerPath = graph.getEulerPath(result.second);
 
-                g.printEulerTour(previousPath);
+                // Повернення до вихідної нумерації
+                vector<pair<int, int>> originalEulerPath = graph.revertEulerPath(eulerPath);
 
-                //Запис результатів до файлу CPP_output.txt
-                g.writePathToFile(e, previousPath);
+                graph.printEulerTour(originalEulerPath);
 
-                extendPath = true;
+                // Запис результатів у файл
+                graph.writePathToFile(edges, originalEulerPath, filename);
             }
         }
-        else if (extendPath&&mode == '2') {
-            
-            if (!previousPath.empty()) {
-                extendGraph(e, previousPath, n); // Доповнюємо граф новими даними
+        else if (mode == '2') {
+            // ручне введення даних графу
+            Graph graph(numberOfVertex);
+            edges = graph.inputGraph(numberOfVertex);
+
+            // Перенумерація графа
+            vector<vector<int>> renumberedEdges = graph.renumberGraph(edges);
+
+            // Виклик функції для розв'язання задачі
+            auto result = sol.chinesePostmanProblem(renumberedEdges, numberOfVertex);
+            if (result.first == -1) {
+                cout << "Неможливо побудувати маршрут.\n";
             }
             else {
-                cout << "Немає існуючого шляху для доповнення. Будь ласка, спочатку побудуйте початковий шлях.\n";
-                continue;
+                cout << "Оптимальна довжина маршруту: " << result.first << " метрів.\n";
+
+                for (const auto& edge : edges) {
+                    graph.addEdge(edge[0] - 1, edge[1] - 1);
+                }
+
+                // Отримання Ейлерового циклу
+                vector<pair<int, int>> eulerPath = graph.getEulerPath(result.second);
+
+                // Повернення до вихідної нумерації
+                vector<pair<int, int>> originalEulerPath = graph.revertEulerPath(eulerPath);
+
+                graph.printEulerTour(originalEulerPath);
+
+                // Запис результатів у файл
+                graph.writePathToFile(edges, originalEulerPath, filename);
             }
+
         }
         else {
             cout << "Невірний вибір. Повторіть будь-ласка.\n";
@@ -99,81 +123,25 @@ int main() {
 
         //Запит на повторення програми
         cout << "Повторити програму (1 - так, 0 - ні)?\n";
-        cin >> repeat;
+        cin >> repeatInput;
 
-    } while (repeat == 1);
+    } while (repeatInput == repeat);
 
     return 0;
 }
 
-// Функція для доповнення існуючого графа та обчислення доповнення до маршруту
-void extendGraph(vector<vector<int>>& e, vector<pair<int, int>>& previousPath, int& n) {
-    int newEdges, u, v, w;
-    cout << "Введіть кількість нових вершин (якщо немає - введіть 0): ";
-    int newNodes;
-    cin >> newNodes;
-
-    // Якщо додаються нові вершини, оновлюємо кількість вершин в графі
-    n += newNodes;
-
-    cout << "Введіть кількість нових ребер для доповнення графа: ";
-    cin >> newEdges;
-
-    cout << "Введіть нові ребра у форматі 'початок кінець вага':\n";
-    for (int i = 0; i < newEdges; ++i) {
-        cin >> u >> v >> w;
-        e.push_back({ u, v, w });
-    }
-
-    // Виклик CPP для обчислення додаткових ребер для повного маршруту
-    Solution sol;
-    auto result = sol.chinesePostmanProblem(e, n);
-    int minDistance = result.first;
-    vector<pair<int, int>> additionalEdges = result.second;
-
-    if (minDistance == -1) {
-        cout << "Неможливо побудувати доповнення до Ейлерового циклу.\n";
-        cout << "Повний маршрут потрібно побудувати з нуля.\n";
-    }
-    else {
-        cout << "Доповнений найкоротший шлях: " << minDistance << endl;
-        Graph g(n);
-
-        // Додаємо всі ребра з графа для обчислення шляху
-        for (const auto& edge : e) {
-            g.addEdge(edge[0] - 1, edge[1] - 1);
-        }
-
-        // Будуємо новий шлях із попереднього шляху та додаткових ребер
-        vector<pair<int, int>> newPath = g.getEulerPath(additionalEdges);
-
-        // Виводимо оновлений маршрут із доповненням
-        g.printEulerExtend(previousPath, additionalEdges, newPath);
-
-        //Запис результатів до CPP_extend.txt
-        g.writeExtendedPathToFile(e, newPath, additionalEdges);
-    }
-}
-
-//// Функція для перетворення числових індексів у символи
-//char indexToChar(int index) {
-//    return 'A' + index; // Перетворює 0 в 'A', 1 в 'B', і т.д.
-//}
-
 // Функція, зчитує текстовий файл для отримання даних про граф
-vector<vector<int>> getData(int& n) {
-    std::ifstream file("CPP.txt"); // назва файлу може змінюватися відповідно до вимог
+pair<int, vector<vector<int>>> getData(string filename) {
+    ifstream file(filename);
     if (!file.is_open()) {
-        throw std::runtime_error("Помилка відкриття файлу");
+        throw runtime_error("Помилка відкриття файлу");
     }
 
     vector<vector<int>> edges;
-    file >> n;  // перший рядок містить кількість точок
-    int u, v, w;
-
+    int n, u, v, w;
+    file >> n;
     while (file >> u >> v >> w) {
         edges.push_back({ u, v, w });
     }
-    file.close();
-    return edges;
+    return { n, edges };
 }

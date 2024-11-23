@@ -3,7 +3,7 @@
 #include "Solution.h"
 using namespace std;
 
-//Алгоритм Дейсктри для визначення найкоротшого шлязу від однієї точки
+//Алгоритм Дейкстри для визначення найкоротшого шлязу від однієї точки
 vector<int> Solution::dijkstra(int src, vector<vector<pair<int, int>>>& g, int n) {
     vector<int> dist(n, INT_MAX);
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;

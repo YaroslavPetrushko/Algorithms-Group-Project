@@ -11,7 +11,6 @@ using namespace std;
 
 class Solution {
 public:
-	//зробити статичними якщо можливо
 
 	static vector<int> dijkstra(int src, vector<vector<pair<int, int>>>& g, int n);
 
