@@ -66,26 +66,31 @@ vector<pair<int, int>> Graph::revertEulerPath(const vector<pair<int, int>>& eule
     return revertedPath;
 }
 
-// Функція для ручного введення графу
-vector<vector<int>> Graph::inputGraph(int& n) {
-    cout << "Введіть кількість точок: ";
-    cin >> n;
-    int edges;
-    cout << "Введіть кількість вулиць: ";
-    cin >> edges;
-    vector<vector<int>> e;
-    cout << "Введіть дані графу у форматі \"Вершина1 Вершина2 Вага_ребра\":\n";
-    for (int i = 0; i < edges; ++i) {
-        int u, v, w;
-        cin >> u >> v >> w;
-        e.push_back({ u, v, w });
-    }
-    return e;
-}
+//// Функція для ручного введення графу
+//pair<int, vector<vector<int>>> Graph::inputGraph(int& n) {
+//    cout << "Введіть кількість точок: ";
+//    cin >> n;
+//    int edges;
+//    cout << "Введіть кількість вулиць: ";
+//    cin >> edges;
+//    vector<vector<int>> e;
+//    cout << "Введіть дані графу у форматі \"Вершина1 Вершина2 Вага_ребра\":\n";
+//    for (int i = 0; i < edges; ++i) {
+//        int u, v, w;
+//        cin >> u >> v >> w;
+//
+//        if ( u < 0 || v < 0) {
+//            throw std::invalid_argument("Введено недійсну вершину.");
+//        }
+//
+//        e.push_back({ u, v, w });
+//    }
+//    return { n,e };
+//}
 
 // Функція для виведення графа
 void Graph::printGraph(const vector<vector<int>>& e, int n) {
-    cout << "Дані графу.\nПроходження відділень Нової Пошти в місті Суми\n";
+    cout << "Дані графу.\nПроходження поштоматів Нової Пошти в місті Суми\n";
     cout << "Кількість відділень: " << n << endl;
     cout << "Кількість вулиць: " << e.size()<< endl;
     cout << "Вулиці для проходження:\n";
@@ -235,6 +240,17 @@ bool Graph::isValidNextEdge(int u, int v)
     return (count1 > count2) ? false : true;
 }
 
+Graph::Graph(int V)
+{
+        this->V = V;
+        adj = new list<int>[V];
+}
+
+Graph::~Graph()
+{
+    delete[] adj;
+}
+
 //Функція для додавання ребер
 void Graph::addEdge(int u, int v)
 {
@@ -245,13 +261,13 @@ void Graph::addEdge(int u, int v)
 // Функція для видалення ребра u-v з графа. Видаляє ребро шляхом заміни значення суміжної вершини на -1.
 void Graph::rmvEdge(int u, int v)
 {
-    // Знаходимо v у списку суміжності u та замінюємо його на -1
+    // Знаходимо v у списку суміжності u
     list<int>::iterator iv = find(adj[u].begin(), adj[u].end(), v);
-    *iv = -1;
+    if (iv != adj[u].end()) *iv = -1; // Якщо знайдено, видаляємо
 
-    // Знаходимо u у списку суміжності v та замінюємо його на -1
+    // Знаходимо u у списку суміжності v
     list<int>::iterator iu = find(adj[v].begin(), adj[v].end(), u);
-    *iu = -1;
+    if (iu != adj[v].end()) *iu = -1; // Якщо знайдено, видаляємо
 }
 
 // Функція на основі DFS для підрахунку кількості досяжних вершин з v

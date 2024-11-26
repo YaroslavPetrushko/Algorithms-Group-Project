@@ -21,12 +21,8 @@ class Graph {
 
 public:
     // Конструктор та деструктор
-    Graph(int V)
-    {
-        this->V = V;
-        adj = new list<int>[V];
-    }
-    ~Graph() { delete[] adj; }
+    Graph(int V) ;
+    ~Graph();
 
     // Функція для додавання та видалення ребер графу
     void addEdge(int u, int v);
@@ -36,8 +32,8 @@ public:
     vector<vector<int>> renumberGraph(const vector<vector<int>>& edges);
     vector<pair<int, int>> revertEulerPath(const vector<pair<int, int>>& eulerPath);
 
-    // Функція для введення даних графу користувачем
-    vector<vector<int>> inputGraph(int& n);
+    //// Функція для введення даних графу користувачем
+    //pair<int, vector<vector<int>>> inputGraph(int& n);
 
     // Функція для виведення графа
     void printGraph(const vector<vector<int>>& e, int n);

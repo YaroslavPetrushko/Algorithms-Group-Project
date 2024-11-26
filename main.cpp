@@ -20,6 +20,9 @@ using namespace std;
 // Отримання даних через відкриття текстового файлу
 pair<int, vector<vector<int>>> getData(string filename);
 
+// Ручне введення даних
+pair<int, vector<vector<int>>> inputGraph(int& n);
+
 int main() {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
@@ -41,14 +44,13 @@ int main() {
             cout << "Виберіть файл для даних графу (1, 2, 3): ";
             cin >> fileChoose;
             switch (fileChoose) {
-            case 0: filename = "CPP.txt"; break;
             case 1: filename = "Path_1.txt"; break;
             case 2: filename = "Path_2.txt"; break;
             case 3: filename = "Path_3.txt"; break;
             default: cout << "Невірний вибір.\n"; continue;
             }
 
-            auto graphData = getData(filename);
+            pair<int, vector<vector<int>>> graphData = getData(filename);
             numberOfVertex = graphData.first;
             edges = graphData.second;
 
@@ -60,7 +62,7 @@ int main() {
             vector<vector<int>> renumberedEdges = graph.renumberGraph(edges);
 
             // Виклик функції для розв'язання задачі
-            auto result = sol.chinesePostmanProblem(renumberedEdges, numberOfVertex);
+            pair<int, vector<pair<int, int>>> result = sol.chinesePostmanProblem(renumberedEdges, numberOfVertex);
             if (result.first == -1) {
                 cout << "Неможливо побудувати маршрут.\n";
             }
@@ -84,23 +86,27 @@ int main() {
             }
         }
         else if (mode == '2') {
+
+            pair<int, vector<vector<int>>> graphData = inputGraph(numberOfVertex);
+            numberOfVertex = graphData.first;
+            edges = graphData.second;
+
             // ручне введення даних графу
             Graph graph(numberOfVertex);
-            edges = graph.inputGraph(numberOfVertex);
 
             // Перенумерація графа
             vector<vector<int>> renumberedEdges = graph.renumberGraph(edges);
 
             // Виклик функції для розв'язання задачі
-            auto result = sol.chinesePostmanProblem(renumberedEdges, numberOfVertex);
+            pair<int, vector<pair<int, int>>> result = sol.chinesePostmanProblem(renumberedEdges, numberOfVertex);
             if (result.first == -1) {
                 cout << "Неможливо побудувати маршрут.\n";
             }
             else {
                 cout << "Оптимальна довжина маршруту: " << result.first << " метрів.\n";
 
-                for (const auto& edge : edges) {
-                    graph.addEdge(edge[0] - 1, edge[1] - 1);
+                for (const auto& edge : renumberedEdges) {
+                    graph.addEdge(edge[0]-1, edge[1]-1);
                 }
 
                 // Отримання Ейлерового циклу
@@ -111,8 +117,6 @@ int main() {
 
                 graph.printEulerTour(originalEulerPath);
 
-                // Запис результатів у файл
-                graph.writePathToFile(edges, originalEulerPath, filename);
             }
 
         }
@@ -144,4 +148,26 @@ pair<int, vector<vector<int>>> getData(string filename) {
         edges.push_back({ u, v, w });
     }
     return { n, edges };
+}
+
+// Функція для ручного введення графу
+pair<int, vector<vector<int>>> inputGraph(int& n) {
+    cout << "Введіть кількість точок: ";
+    cin >> n;
+    int edges;
+    cout << "Введіть кількість вулиць: ";
+    cin >> edges;
+    vector<vector<int>> e;
+    cout << "Введіть дані графу у форматі \"Вершина1 Вершина2 Вага_ребра\":\n";
+    for (int i = 0; i < edges; ++i) {
+        int u, v, w;
+        cin >> u >> v >> w;
+
+        if (u < 0 || v < 0) {
+            throw std::invalid_argument("Введено недійсну вершину.");
+        }
+
+        e.push_back({ u, v, w });
+    }
+    return { n,e };
 }
