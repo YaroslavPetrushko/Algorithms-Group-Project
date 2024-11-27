@@ -4,8 +4,12 @@
 #include <fstream>
 #include <sstream>
 #include <list>
-#include <string.h>
+#include <string>
 #include <vector>
+#include <map>
+#include <unordered_map>
+#include <set>
+#include <queue>
 
 using namespace std;
 
@@ -13,40 +17,34 @@ using namespace std;
 class Graph {
     int V; // Кількість вершин
     list<int>* adj; // Динамічний масив списків суміжності
+    map<int, int> vertexMapping;       // Відображення: вихідний індекс -> новий індекс
+    map<int, int> reverseVertexMapping; // Відображення: новий індекс -> вихідний індекс
 
 public:
     // Конструктор та деструктор
-    Graph(int V)
-    {
-        this->V = V;
-        adj = new list<int>[V];
-    }
-    ~Graph() { delete[] adj; }
+    Graph(int V) ;
+    ~Graph();
 
     // Функція для додавання та видалення ребер графу
     void addEdge(int u, int v);
     void rmvEdge(int u, int v);
 
+    // Функція для роботи з перенумерацією вершин графу
+    pair<int, vector<vector<int>>> renumberGraph(const vector<vector<int>>& edges, int startPoint);
+    vector<pair<int, int>> revertEulerPath(const vector<pair<int, int>>& eulerPath);
+
     // Функція для виведення графа
-    void printGraph(const vector<vector<int>>& e, int n);
+    void printGraph(const vector<vector<int>>& e, int n, int startPoint);
 
     //Функція для запису шляху до файлу CPP_output.txt
-    void writePathToFile(const vector<vector<int>>& edges, const vector<pair<int, int>>& eulerPath);
-
-    //Функція для запису оновленого шляху до файлу CPP_extend.txt
-    void writeExtendedPathToFile(const vector<vector<int>>& edges, 
-        const vector<pair<int, int>>& newPath,
-        const vector<pair<int, int>>& additionalEdges);
+    void writePathToFile(const vector<vector<int>>& edges, const vector<pair<int, int>>& eulerPath, int weight,int startPoint, string filename);
 
     // Методи для визначення Ейлерового шляху
-    vector<pair<int, int>> getEulerPath(const vector<pair<int, int>>& additionalEdges);
+    vector<pair<int, int>> getEulerPath(const vector<pair<int, int>>& additionalEdges, int startPoint);
     void getEulerPathUtil(int u, vector<pair<int, int>>& eulerPath);
 
-    //Методи для виведення Ейлерового шляху в консоль
+    //Метод для виведення Ейлерового шляху в консоль
     void printEulerTour(const vector<pair<int, int>>& previousPath);
-    void printEulerExtend(const vector<pair<int, int>>& previousPath,
-        const vector<pair<int, int>>& additionalEdges,
-        const vector<pair<int, int>>& newPath);
 
     //Отримання загальної ваги ребер
     int getTotalWeight(const vector<vector<int>>& edges);
