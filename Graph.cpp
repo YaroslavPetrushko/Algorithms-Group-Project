@@ -1,9 +1,10 @@
-//Функціонал для взаємодії з графом, (введення/виведення)
+//Функціонал для взаємодії з графом
 // та знаходження і виведення Ейлерового шляху
 #include "Graph.h"
 using namespace std;
 
-vector<vector<int>> Graph::renumberGraph(const vector<vector<int>>& edges) {
+pair<int, vector<vector<int>>> Graph::renumberGraph(const vector<vector<int>>& edges, int startPoint) {
+    //Очищення мапи перед зміною вершин
     vertexMapping.clear();
     reverseVertexMapping.clear();
 
@@ -20,7 +21,13 @@ vector<vector<int>> Graph::renumberGraph(const vector<vector<int>>& edges) {
     // Якщо послідовність не має розривів, нічого не змінюємо
     if (uniqueVertices.size() == (maxVertex - minVertex + 1) && minVertex == 0) {
         this->V = maxVertex + 1;
-        return edges; // Повертаємо вихідні ребра без змін
+
+        // Перевірка, чи є стартова вершина у графі
+        if (uniqueVertices.find(startPoint) == uniqueVertices.end()) {
+            throw std::invalid_argument("Стартова точка відсутня у графі.");
+        }
+
+        return { startPoint, edges }; // Повертаємо вихідні дані без змін
     }
 
     // Інакше виконуємо перенумерацію
@@ -30,6 +37,9 @@ vector<vector<int>> Graph::renumberGraph(const vector<vector<int>>& edges) {
         reverseVertexMapping[currentIndex] = vertex;
         currentIndex++;
     }
+
+    // Перенумеровуємо стартову точку
+    int renumberedStartPoint = vertexMapping[startPoint];
 
     // Створення нового списку ребер із перенумерованими вершинами
     vector<vector<int>> renumberedEdges;
@@ -47,9 +57,9 @@ vector<vector<int>> Graph::renumberGraph(const vector<vector<int>>& edges) {
     }
 
     // Оновлення кількості вершин у графі
-    this->V = currentIndex-1;
+    this->V = currentIndex - 1;
 
-    return renumberedEdges;
+    return { renumberedStartPoint, renumberedEdges };
 }
 
 // Функція для конвертації Ейлерового шляху відповідно до введених даних
@@ -58,41 +68,20 @@ vector<pair<int, int>> Graph::revertEulerPath(const vector<pair<int, int>>& eule
 
     for (const auto& edge : eulerPath) {
         revertedPath.push_back({
-            reverseVertexMapping[edge.first+1],  // Повертаємо до оригінальних вершин
-            reverseVertexMapping[edge.second+1]  // Повертаємо до оригінальних вершин
+            reverseVertexMapping[edge.first],  // Повертаємо до оригінальних вершин
+            reverseVertexMapping[edge.second]  // Повертаємо до оригінальних вершин
             });
     }
 
     return revertedPath;
 }
 
-//// Функція для ручного введення графу
-//pair<int, vector<vector<int>>> Graph::inputGraph(int& n) {
-//    cout << "Введіть кількість точок: ";
-//    cin >> n;
-//    int edges;
-//    cout << "Введіть кількість вулиць: ";
-//    cin >> edges;
-//    vector<vector<int>> e;
-//    cout << "Введіть дані графу у форматі \"Вершина1 Вершина2 Вага_ребра\":\n";
-//    for (int i = 0; i < edges; ++i) {
-//        int u, v, w;
-//        cin >> u >> v >> w;
-//
-//        if ( u < 0 || v < 0) {
-//            throw std::invalid_argument("Введено недійсну вершину.");
-//        }
-//
-//        e.push_back({ u, v, w });
-//    }
-//    return { n,e };
-//}
-
-// Функція для виведення графа
-void Graph::printGraph(const vector<vector<int>>& e, int n) {
-    cout << "Дані графу.\nПроходження поштоматів Нової Пошти в місті Суми\n";
+// Функція для виведення графа в консоль
+void Graph::printGraph(const vector<vector<int>>& e, int n, int startPoint) {
+    cout << "Дані графу.\nПроходження поштоматів Нової Пошти в місті Суми.\n";
     cout << "Кількість відділень: " << n << endl;
     cout << "Кількість вулиць: " << e.size()<< endl;
+    cout << "Початкова точка: " << startPoint << endl;
     cout << "Вулиці для проходження:\n";
 
     //Вирівнювання тексту
@@ -108,27 +97,30 @@ void Graph::printGraph(const vector<vector<int>>& e, int n) {
     }
 }
 
-//Функція для запису маршруту до файлу CPP_output.txt
-void Graph::writePathToFile(const vector<vector<int>>& edges, const vector<pair<int, int>>& eulerPath, string filename) {
+//Функція для запису результатів до текстового файлу
+void Graph::writePathToFile(const vector<vector<int>>& edges, const vector<pair<int, int>>& eulerPath,int weight,int startPoint, string filename) {
     
     // Перевірка наявності ".txt" на кінці імені файлу
     if (filename.size() > 4 && filename.substr(filename.size() - 4) == ".txt") {
         filename = filename.substr(0, filename.size() - 4);  // Видалення ".txt"
     }
 
-    // Додавання префіксу "_output" і розширення ".txt"
+    // Додавання закінчення "_output.txt" до назви файлу
     filename += "_output.txt";
 
     ofstream outFile(filename);
     if (outFile.is_open()) {
         outFile << "Кількість відділень: " << V << "\n";
         outFile << "Кількість вулиць: " << edges.size() << "\n";
+        outFile << "Початкова точка: " << startPoint << endl;
 
         // Запис ребер
         outFile << "Вулиці для проходження:\n";
         for (const auto& edge : edges) {
             outFile << edge[0] << " " << edge[1] << " " << edge[2] << "\n";
         }
+
+        outFile << "Найменша довжина маршруту: " <<weight<< "\n";
 
         // Запис маршруту
         outFile << "Оптимальний маршрут:\n";
@@ -140,37 +132,56 @@ void Graph::writePathToFile(const vector<vector<int>>& edges, const vector<pair<
     }
 }
 
-// Метод getEulerPath створює Ейлерів шлях для графа.
-vector<pair<int, int>> Graph::getEulerPath(const vector<pair<int, int>>& additionalEdges) {
+// Метод getEulerPath створює Ейлерів шлях для графа
+vector<pair<int, int>> Graph::getEulerPath(const vector<pair<int, int>>& additionalEdges, int startPoint) {
     // Додаємо додаткові ребра в граф
     for (const auto& edge : additionalEdges) {
         addEdge(edge.first, edge.second);
     }
 
-    // Знаходимо вершину з непарною степенем, якщо така є
-    int u = 0;
-    for (int i = 0; i < V; i++) {
-        if (adj[i].size() & 1) {
-            u = i;
-            break;
+    // Перевіряємо, чи існує startPoint у графі
+    if (adj[startPoint].empty()) {
+        throw invalid_argument("Стартова точка не існує у графі.");
+    }
+
+    // Додаємо ребра до результатуючого шляху
+    vector<pair<int, int>> eulerPath;
+
+    getEulerPathUtil(startPoint-1, eulerPath);  // Викликаємо допоміжну функцію для отримання шляху
+
+    // Якщо знайдений шлях не починається з startPoint, змінюємо порядок
+    if (!eulerPath.empty() && eulerPath.front().first != startPoint) {
+        // Знаходимо перше ребро, яке починається з startPoint
+        auto it = find_if(eulerPath.begin(), eulerPath.end(), [&](const pair<int, int>& edge) {
+            return edge.first == startPoint;
+        });
+
+        if (it != eulerPath.end()) {
+            // Переміщаємо знайдене ребро в початок шляху
+            rotate(eulerPath.begin(), it, eulerPath.end());
         }
     }
 
-    vector<pair<int, int>> eulerPath;
-    getEulerPathUtil(u, eulerPath);  // Викликаємо допоміжну функцію для отримання шляху
-    
-    // Повертаємо Ейлеровий шлях
-    return eulerPath;
+    // Перевіряємо, чи шлях завершується на startPoint
+    if (!eulerPath.empty() && eulerPath.back().second != startPoint) {
+        // Якщо останнє ребро не завершується на startPoint, додаємо його
+        eulerPath.push_back({ eulerPath.back().second, startPoint });
+    }
 
+    return eulerPath;
 }
 
 // Допоміжний метод getEulerPathUtil для побудови Ейлерового шляху.
 void Graph::getEulerPathUtil(int u, vector<pair<int, int>>& eulerPath) {
+    if (u < 0 || u >= V) {
+        throw out_of_range("Індекс вершини виходить за межі графа");
+    }
+
     list<int>::iterator i;
     for (i = adj[u].begin(); i != adj[u].end(); ++i) {
         int v = *i;
         if (v != -1 && isValidNextEdge(u, v)) {
-            eulerPath.push_back({ u, v });  // Додаємо пару (u, v) до шляху
+            eulerPath.push_back({ u + 1, v + 1 });  // Додаємо пару (u, v), збільшуючи індекси на 1
             rmvEdge(u, v);
             getEulerPathUtil(v, eulerPath);  // Рекурсивно викликаємо для наступної вершини
         }
@@ -179,7 +190,7 @@ void Graph::getEulerPathUtil(int u, vector<pair<int, int>>& eulerPath) {
 
 // Метод printEulerTour виводить Ейлерів маршрут на екран.
 void Graph::printEulerTour(const vector<pair<int, int>>& path) {
-    cout << "Оптимальний маршрут між відділеннями :\n";
+    cout << "Оптимальний маршрут:\n";
     for (const auto& edge : path) {
         cout << edge.first << "-" << edge.second << " ";  // Виводимо шлях, щоб перевірити, чи він зберігся
     }

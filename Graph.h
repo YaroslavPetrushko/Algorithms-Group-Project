@@ -9,6 +9,7 @@
 #include <map>
 #include <unordered_map>
 #include <set>
+#include <queue>
 
 using namespace std;
 
@@ -28,21 +29,18 @@ public:
     void addEdge(int u, int v);
     void rmvEdge(int u, int v);
 
-    // Функція для роботи з перенумерацією
-    vector<vector<int>> renumberGraph(const vector<vector<int>>& edges);
+    // Функція для роботи з перенумерацією вершин графу
+    pair<int, vector<vector<int>>> renumberGraph(const vector<vector<int>>& edges, int startPoint);
     vector<pair<int, int>> revertEulerPath(const vector<pair<int, int>>& eulerPath);
 
-    //// Функція для введення даних графу користувачем
-    //pair<int, vector<vector<int>>> inputGraph(int& n);
-
     // Функція для виведення графа
-    void printGraph(const vector<vector<int>>& e, int n);
+    void printGraph(const vector<vector<int>>& e, int n, int startPoint);
 
     //Функція для запису шляху до файлу CPP_output.txt
-    void writePathToFile(const vector<vector<int>>& edges, const vector<pair<int, int>>& eulerPath, string filename);
+    void writePathToFile(const vector<vector<int>>& edges, const vector<pair<int, int>>& eulerPath, int weight,int startPoint, string filename);
 
     // Методи для визначення Ейлерового шляху
-    vector<pair<int, int>> getEulerPath(const vector<pair<int, int>>& additionalEdges);
+    vector<pair<int, int>> getEulerPath(const vector<pair<int, int>>& additionalEdges, int startPoint);
     void getEulerPathUtil(int u, vector<pair<int, int>>& eulerPath);
 
     //Метод для виведення Ейлерового шляху в консоль
