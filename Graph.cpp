@@ -3,6 +3,7 @@
 #include "Graph.h"
 using namespace std;
 
+//Функція для перенумерації вершин графу, (тобто з "1,3,24" в "1,2,3")
 pair<int, vector<vector<int>>> Graph::renumberGraph(const vector<vector<int>>& edges, int startPoint) {
     //Очищення мапи перед зміною вершин
     vertexMapping.clear();
@@ -21,11 +22,6 @@ pair<int, vector<vector<int>>> Graph::renumberGraph(const vector<vector<int>>& e
     // Якщо послідовність не має розривів, нічого не змінюємо
     if (uniqueVertices.size() == (maxVertex - minVertex + 1) && minVertex == 0) {
         this->V = maxVertex + 1;
-
-        // Перевірка, чи є стартова вершина у графі
-        if (uniqueVertices.find(startPoint) == uniqueVertices.end()) {
-            throw std::invalid_argument("Стартова точка відсутня у графі.");
-        }
 
         return { startPoint, edges }; // Повертаємо вихідні дані без змін
     }
@@ -46,7 +42,13 @@ pair<int, vector<vector<int>>> Graph::renumberGraph(const vector<vector<int>>& e
     for (const auto& edge : edges) {
         if (vertexMapping.find(edge[0]) == vertexMapping.end() ||
             vertexMapping.find(edge[1]) == vertexMapping.end()) {
-            throw std::runtime_error("Invalid edge: vertex not found in mapping");
+            cerr << "Помилка: Невірне ребро, вершина не знайдена у відображенні.\n";
+            return {};  // Повертаємо порожній граф
+        }
+
+        if (edge.size() < 3 || edge[2] < 0) {
+            cerr << "Помилка: Невірна вага ребра.\n";
+            return {};  // Повертаємо порожній граф
         }
 
         renumberedEdges.push_back({
@@ -132,22 +134,28 @@ void Graph::writePathToFile(const vector<vector<int>>& edges, const vector<pair<
     }
 }
 
-// Метод getEulerPath створює Ейлерів шлях для графа
+// Метод, що створює Ейлерів шлях для графа
 vector<pair<int, int>> Graph::getEulerPath(const vector<pair<int, int>>& additionalEdges, int startPoint) {
     // Додаємо додаткові ребра в граф
     for (const auto& edge : additionalEdges) {
         addEdge(edge.first, edge.second);
     }
 
-    // Перевіряємо, чи існує startPoint у графі
+    // Перевірка на існування стартової точки
+    if (startPoint-1 < 0 || startPoint >= V) {
+        cerr << "Помилка: Стартова точка " << startPoint << " не існує у графі." << endl;
+        return {};  // Повертаємо порожній шлях, щоб уникнути завершення
+    }
+
     if (adj[startPoint].empty()) {
-        throw invalid_argument("Стартова точка не існує у графі.");
+        cerr << "Помилка: Стартова точка " << startPoint << " не має вихідних ребер." << endl;
+        return {};  // Повертаємо порожній шлях
     }
 
     // Додаємо ребра до результатуючого шляху
     vector<pair<int, int>> eulerPath;
 
-    getEulerPathUtil(startPoint-1, eulerPath);  // Викликаємо допоміжну функцію для отримання шляху
+    getEulerPathUtil(startPoint, eulerPath);  // Викликаємо допоміжну функцію для отримання шляху
 
     // Якщо знайдений шлях не починається з startPoint, змінюємо порядок
     if (!eulerPath.empty() && eulerPath.front().first != startPoint) {
@@ -168,13 +176,20 @@ vector<pair<int, int>> Graph::getEulerPath(const vector<pair<int, int>>& additio
         eulerPath.push_back({ eulerPath.back().second, startPoint });
     }
 
+    // Якщо шлях пустий, повертаємо порожній список
+    if (eulerPath.empty()) {
+        cerr << "Помилка: Ейлерів шлях не знайдено." << endl;
+    }
+
     return eulerPath;
 }
 
 // Допоміжний метод getEulerPathUtil для побудови Ейлерового шляху.
 void Graph::getEulerPathUtil(int u, vector<pair<int, int>>& eulerPath) {
+    //Перевірка чи входить вершина в список вершин графу
     if (u < 0 || u >= V) {
-        throw out_of_range("Індекс вершини виходить за межі графа");
+        cerr << "Індекс вершини " << u + 1 << " виходить за межі графа." << endl;
+        return;
     }
 
     list<int>::iterator i;
@@ -188,22 +203,13 @@ void Graph::getEulerPathUtil(int u, vector<pair<int, int>>& eulerPath) {
     }
 }
 
-// Метод printEulerTour виводить Ейлерів маршрут на екран.
+// Функція що виводить Ейлерів маршрут на екран
 void Graph::printEulerTour(const vector<pair<int, int>>& path) {
     cout << "Оптимальний маршрут:\n";
     for (const auto& edge : path) {
         cout << edge.first << "-" << edge.second << " ";  // Виводимо шлях, щоб перевірити, чи він зберігся
     }
     cout << endl;
-}
-
-// Метод для обрахування загальної ваги ребер
-int Graph::getTotalWeight(const vector<vector<int>>& edges) {
-    int totalWeight = 0;
-    for (const auto& edge : edges) {
-        totalWeight += edge[2]; // The weight is the third element
-    }
-    return totalWeight;
 }
 
 // Функція для перевірки наявності ребра в графі
@@ -251,12 +257,14 @@ bool Graph::isValidNextEdge(int u, int v)
     return (count1 > count2) ? false : true;
 }
 
+//Конструктор графу
 Graph::Graph(int V)
 {
         this->V = V;
         adj = new list<int>[V];
 }
 
+//Деконструктор графу
 Graph::~Graph()
 {
     delete[] adj;

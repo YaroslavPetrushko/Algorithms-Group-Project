@@ -66,16 +66,34 @@ int main() {
             numberOfVertex = graphData.first;
             edges = graphData.second;
             filename = "";
-
-            if (numberOfVertex==0 ||edges.size()==0 ) {
+            
+            if (numberOfVertex == 0 || edges.empty()) {
+                cerr << "Помилка: Граф не створено. Повторіть введення.\n";
                 continue;
             }
+
+            // Створюємо множину для збереження унікальних вершин
+            set<int> uniqueVertices;
+
+            // Перебираємо всі ребра, додаючи їх вершини до множини
+            for (const auto& edge : edges) {
+                uniqueVertices.insert(edge[0]); // Вершина 1
+                uniqueVertices.insert(edge[1]); // Вершина 2
+            }
+
+            // Перевірка: якщо кількість унікальних вершин перевищує задану кількість
+            if (uniqueVertices.size() > numberOfVertex) {
+                cerr << "Помилка: Невірна кількість вершин у ребрах. Граф не створено. Повторіть введення.\n";
+                continue;
+            }
+
         }
         else {
-            cout << "Невірний вибір. Повторіть будь ласка.\n";
+            cerr << "Невірний вибір. Повторіть будь ласка.\n";
             continue;
         }
 
+        // Основна логіка програми після отримання графу
         Graph graph(numberOfVertex);
 
         // Перенумерація графу (включно з початковою точкою), для правильного ітераційного обчислення алгоритмом
@@ -86,42 +104,45 @@ int main() {
         // Виклик функції для розв'язання задачі
          vector<pair<int, int>> result = sol.chinesePostmanProblem(renumberedEdges, numberOfVertex);
        
-         if (result.size()==0) {
-            cout << "Неможливо побудувати маршрут.\n";
+         if (result.empty()) {
+             cerr << "Неможливо побудувати маршрут.\n";
          }
          else {
              // Додавання ребер до графу
-            for (const auto& edge : renumberedEdges) {
-                graph.addEdge(edge[0] - 1, edge[1] - 1);
-            }
+             for (const auto& edge : renumberedEdges) {
+                 graph.addEdge(edge[0] - 1, edge[1] - 1);
+             }
 
-            // Отримання Ейлерового циклу
-            vector<pair<int, int>> eulerPath = graph.getEulerPath(result, renumberedStartPoint);
+             // Отримання Ейлерового циклу
+             vector<pair<int, int>> eulerPath = graph.getEulerPath(result, renumberedStartPoint);
 
-            // Повернення до вихідної нумерації
-            vector<pair<int, int>> originalEulerPath = graph.revertEulerPath(eulerPath);
-            
-            // Обчислення ваги маршруту
-            int pathWeight = sol.calculateRouteWeight(originalEulerPath, edges);
-            cout << "Довжина знайденого маршруту: " << pathWeight << " метрів.\n";
+             // Повернення до вихідної нумерації
+             vector<pair<int, int>> originalEulerPath = graph.revertEulerPath(eulerPath);
 
-            //Вивіл результатів в консоль
-            graph.printEulerTour(originalEulerPath);
+             if (!originalEulerPath.empty()) {
+                 // Обчислення ваги маршруту
+                 int pathWeight = sol.calculateRouteWeight(originalEulerPath, edges);
+                 cout << "Довжина знайденого маршруту: " << pathWeight << " метрів.\n";
 
-            // Запис результатів у файл
-            if(!filename.empty())
-               graph.writePathToFile(edges, originalEulerPath,pathWeight, startPoint, filename);
-          }
+                 //Вивіл результатів в консоль
+                 graph.printEulerTour(originalEulerPath);
 
+                 // Запис результатів у файл
+                 if (!filename.empty())
+                     graph.writePathToFile(edges, originalEulerPath, pathWeight, startPoint, filename);
+             }
+         }
+
+        //Програма запитує користувача чи треба повторити
         cout << "Повторити програму (1 - так, 0 - ні)?\n";
         cin >> repeat;
 
-        if (repeat != 1 && repeat != 0) {
-            cout << "\nНевірне введення. Завершення програми...\n";
+        if (cin.fail()||repeat!=1&&repeat!=0) {
+            cerr << "\nНевірне введення. Завершення програми...\n";
             break;
         }
 
-    } while (repeat);
+    } while (repeat==1);
 
     return 0;
 }
@@ -129,15 +150,27 @@ int main() {
 // Функція для зчитування графу з текстового файлу
 pair<int, vector<vector<int>>> getData(string filename, int& startPoint) {
     ifstream file(filename);
+
     if (!file.is_open()) {
-        throw runtime_error("Помилка відкриття файлу");
+        cerr << "Помилка відкриття файлу.\n";
+        return {};  // Повертаємо порожній граф
     }
 
     int n, u, v, w;
     file >> n >> startPoint;
+
+    if (file.fail() || n <= 0 || startPoint < 0) {
+        cerr << "Помилка: Невірні початкові дані у файлі.\n";
+        return {};  // Повертаємо порожній граф
+    }
+
     vector<vector<int>> edges;
 
     while (file >> u >> v >> w) {
+        if (u < 0 || v < 0 || w < 0) {
+            cerr << "Помилка: Невірні дані ребра у файлі.\n";
+            return {};  // Повертаємо порожній граф
+        }
         edges.push_back({ u, v, w });
     }
     return { n, edges };
@@ -150,24 +183,36 @@ pair<int, vector<vector<int>>> inputGraph(int& n, int& startPoint) {
     cout << "Введіть початкову точку: ";
     cin >> startPoint;
 
+    if (n <= 0 || startPoint < 0) {
+        cerr << "Помилка: Невірне введення кількості вершин або стартової точки.\n";
+        return {};  // Повертаємо порожній граф
+    }
+
     int edgeCount;
     cout << "Введіть кількість ребер: ";
     cin >> edgeCount;
 
-
-    if (n <= 0 || startPoint < 0||edgeCount<=0) {
-        cout << "Помилка: Невірне введення.\n";
-        return{};
+    if (edgeCount <= 0) {
+        cerr << "Помилка: Невірне введення кількості ребер.\n";
+        return {};  // Повертаємо порожній граф
     }
 
     vector<vector<int>> edges;
     cout << "Введіть дані ребер у форматі \"Вершина1 Вершина2 Вага\" \n";
+
     for (int i = 0; i < edgeCount; ++i) {
         int u, v, w;
-        cout << "Ребро "<<i+1<<" : ";
+        cout << "Ребро " << i + 1 << ": ";
         cin >> u >> v >> w;
-        edges.push_back({ u, v, w });
 
+        if (cin.fail() || u < 1 || v < 1 || w <= 0) {
+            cerr << "Помилка: Невірне введення для ребра " << i + 1 << ".\n"<< 
+                "Вершини та вага повинні бути додатними числами. Повторіть введення.\n";
+            --i;  // Повторення введення для цього ребра
+            continue;
+        }
+
+        edges.push_back({ u, v, w });
     }
     return { n, edges };
 }
