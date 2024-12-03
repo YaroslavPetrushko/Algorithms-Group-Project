@@ -3,13 +3,12 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 #include <list>
 #include <string>
 #include <vector>
 #include <map>
-#include <unordered_map>
 #include <set>
-#include <queue>
 
 using namespace std;
 
@@ -45,9 +44,6 @@ public:
 
     //Метод для виведення Ейлерового шляху в консоль
     void printEulerTour(const vector<pair<int, int>>& previousPath);
-
-    //Отримання загальної ваги ребер
-    int getTotalWeight(const vector<vector<int>>& edges);
 
     // Функція що повертає кількість досяжних вершин
     int DFSCount(int v, bool visited[]);

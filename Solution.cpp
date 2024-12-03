@@ -5,6 +5,7 @@ using namespace std;
 
 // Алгоритм Дейкстри для визначення найкоротших шляхів від однієї вершини до всіх інших
 vector<int> Solution::dijkstra(int src, const vector<vector<pair<int, int>>>& g, int n) {
+
     vector<int> dist(n, INT_MAX); // Відстані від джерела до всіх вершин
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
 
@@ -20,6 +21,7 @@ vector<int> Solution::dijkstra(int src, const vector<vector<pair<int, int>>>& g,
 
         for (auto& neighbor : g[u]) {
             int v = neighbor.first, weight = neighbor.second;
+
             if (dist[u] + weight < dist[v]) {
                 dist[v] = dist[u] + weight;
                 pq.push({ dist[v], v });
@@ -48,6 +50,7 @@ void Solution::generateOddPairs(const vector<int>& oddNodes, int index,
 
     visited[index] = true;
     for (int j = 0; j < oddNodes.size(); ++j) {
+
         if (!visited[j]) {
             visited[j] = true;
             currentPair.push_back({ oddNodes[index], oddNodes[j] });
@@ -55,7 +58,9 @@ void Solution::generateOddPairs(const vector<int>& oddNodes, int index,
             currentPair.pop_back(); // Повертаємо стан
             visited[j] = false;
         }
+
     }
+
     visited[index] = false;
 }
 
@@ -67,11 +72,13 @@ pair<int, vector<pair<int, int>>> Solution::findVertexPath(int u, int v,
     vector<pair<int, int>> bestPath;
     int minPath = INT_MAX;
 
+
     for (int k = 0; k < n; ++k) {
-        if (k != u && k != v &&
-            shortestPath[u][k] < INT_MAX &&
-            shortestPath[k][v] < INT_MAX) {
+
+        if (k != u && k != v && shortestPath[u][k] < INT_MAX && shortestPath[k][v] < INT_MAX) {
+
             int pathLength = shortestPath[u][k] + shortestPath[k][v];
+
             if (pathLength < minPath) {
                 minPath = pathLength;
                 bestPath = { {u, k}, {k, v} };
@@ -102,6 +109,7 @@ vector<pair<int, int>> Solution::chinesePostmanProblem(vector<vector<int>>& edge
 
     // Знаходимо вузли з непарним степенем
     for (int i = 0; i < n; i++) {
+
         if (g[i].size() % 2)
             oddNodes.push_back(i);
     }
@@ -111,8 +119,10 @@ vector<pair<int, int>> Solution::chinesePostmanProblem(vector<vector<int>>& edge
 
     // Створення матриці найкоротших шляхів за допомогою Дейкстри
     vector<vector<int>> shortestPath(n, vector<int>(n, INT_MAX));
+
     for (int i = 0; i < n; ++i) {
         vector<int> dist = dijkstra(i, g, n);
+
         for (int j = 0; j < n; ++j) {
             shortestPath[i][j] = dist[j];
         }
@@ -143,7 +153,9 @@ vector<pair<int, int>> Solution::chinesePostmanProblem(vector<vector<int>>& edge
             // Перевіряємо, чи існує прямий шлях між i.first та i.second
             bool directEdgeExists = false;
             int directEdgeWeight = INT_MAX;
+
             for (auto& neighbor : g[i.first]) {
+
                 if (neighbor.first == i.second) {
                     directEdgeExists = true;
                     directEdgeWeight = neighbor.second;
@@ -159,10 +171,12 @@ vector<pair<int, int>> Solution::chinesePostmanProblem(vector<vector<int>>& edge
             else {
                 // Інакше шукаємо шлях через проміжні вершини за допомогою findVertexPath
                 auto result = findVertexPath(i.first, i.second, g, tempEdges, shortestPath, n);
+
                 if (result.first == INT_MAX) {
                     tans = INT_MAX; // Якщо шлях недосяжний, перериваємо
                     break;
                 }
+
                 tans += result.first;
             }
         }
@@ -188,10 +202,14 @@ int Solution::calculateRouteWeight(const vector<pair<int, int>>& path, const vec
     int totalWeight = 0;
 
     for (const auto& edge : path) {
+
         for (const auto& originalEdge : edges) {
+
             if ((originalEdge[0] == edge.first && originalEdge[1] == edge.second) ||
                 (originalEdge[0] == edge.second && originalEdge[1] == edge.first)) {
+                
                 totalWeight += originalEdge[2];
+
                 break;
             }
         }
